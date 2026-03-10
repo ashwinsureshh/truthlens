@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+
+# Environment
+.env
+backend/.env
+
+# Node
+node_modules/
+frontend/dist/
+
+# Model checkpoints (large files)
+model/checkpoints/
+model/data/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
