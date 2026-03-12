@@ -3,6 +3,7 @@ import Home from "./pages/Home"
 import Results from "./pages/Results"
 import History from "./pages/History"
 import Login from "./pages/Login"
+import Benchmark from "./pages/Benchmark"
 import Navbar from "./components/ui/Navbar"
 import WavesBackground from "./components/ui/WavesBackground"
 
@@ -27,6 +28,7 @@ export default function App() {
             <Route path="/results/:id" element={<Results />} />
             <Route path="/history" element={<History />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/benchmark/:id" element={<Benchmark />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
