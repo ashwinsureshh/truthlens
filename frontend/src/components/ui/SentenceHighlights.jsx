@@ -1,15 +1,21 @@
 import { useState } from "react"
 
-const LABEL_STYLES = {
-  credible: "bg-green-900/40 border-green-700 hover:bg-green-900/60",
-  uncertain: "bg-yellow-900/40 border-yellow-700 hover:bg-yellow-900/60",
-  suspicious: "bg-red-900/40 border-red-700 hover:bg-red-900/60",
-}
-
-const LABEL_BADGE = {
-  credible: "bg-green-700 text-green-100",
-  uncertain: "bg-yellow-700 text-yellow-100",
-  suspicious: "bg-red-700 text-red-100",
+const STYLES = {
+  credible: {
+    container: "border-l-2 border-emerald-500/50 bg-emerald-950/20 border-y border-r border-emerald-500/10 hover:bg-emerald-950/35",
+    badge:     "bg-emerald-500/12 text-emerald-400 border border-emerald-500/20",
+    dot:       "bg-emerald-400",
+  },
+  uncertain: {
+    container: "border-l-2 border-amber-500/50 bg-amber-950/20 border-y border-r border-amber-500/10 hover:bg-amber-950/35",
+    badge:     "bg-amber-500/12 text-amber-400 border border-amber-500/20",
+    dot:       "bg-amber-400",
+  },
+  suspicious: {
+    container: "border-l-2 border-red-500/50 bg-red-950/20 border-y border-r border-red-500/10 hover:bg-red-950/35",
+    badge:     "bg-red-500/12 text-red-400 border border-red-500/20",
+    dot:       "bg-red-400",
+  },
 }
 
 export default function SentenceHighlights({ sentences }) {
@@ -17,30 +23,43 @@ export default function SentenceHighlights({ sentences }) {
 
   return (
     <div className="space-y-2">
-      <div className="flex gap-4 mb-4 text-xs text-gray-400">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-green-500 inline-block"/> Credible</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-yellow-500 inline-block"/> Uncertain</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500 inline-block"/> Suspicious</span>
+      {/* Legend */}
+      <div className="flex gap-5 mb-5">
+        {[
+          { key: "credible",   label: "Credible",   dot: "bg-emerald-400" },
+          { key: "uncertain",  label: "Uncertain",  dot: "bg-amber-400"   },
+          { key: "suspicious", label: "Suspicious", dot: "bg-red-400"     },
+        ].map(({ key, label, dot }) => (
+          <span key={key} className="flex items-center gap-1.5 text-xs text-slate-600">
+            <span className={`w-2 h-2 rounded-full ${dot} opacity-80`} />
+            {label}
+          </span>
+        ))}
       </div>
-      {sentences.map((s, i) => (
-        <div
-          key={i}
-          onClick={() => setExpanded(expanded === i ? null : i)}
-          className={`border rounded-lg p-3 cursor-pointer transition-colors ${LABEL_STYLES[s.label]}`}
-        >
-          <div className="flex justify-between items-start gap-4">
-            <p className="text-sm text-gray-200">{s.sentence}</p>
-            <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 font-medium ${LABEL_BADGE[s.label]}`}>
-              {s.score.toFixed(0)}
-            </span>
+
+      {sentences.map((s, i) => {
+        const style = STYLES[s.label] ?? STYLES.uncertain
+        return (
+          <div
+            key={i}
+            onClick={() => setExpanded(expanded === i ? null : i)}
+            className={`rounded-xl p-4 cursor-pointer transition-all duration-200 ${style.container}`}
+          >
+            <div className="flex items-start justify-between gap-4">
+              <p className="text-sm text-slate-200 leading-relaxed">{s.sentence}</p>
+              <span className={`text-xs px-2.5 py-1 rounded-lg shrink-0 font-mono font-bold ${style.badge}`}>
+                {s.score.toFixed(0)}
+              </span>
+            </div>
+
+            {expanded === i && s.explanation && (
+              <p className="mt-3 text-xs text-slate-500 border-t border-white/5 pt-3 leading-relaxed">
+                {s.explanation}
+              </p>
+            )}
           </div>
-          {expanded === i && (
-            <p className="mt-2 text-xs text-gray-400 border-t border-gray-700 pt-2">
-              {s.explanation}
-            </p>
-          )}
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

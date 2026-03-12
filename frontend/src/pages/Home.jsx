@@ -1,19 +1,35 @@
 import { useState } from "react"
 import { useNavigate } from "react-router-dom"
+import { motion } from "framer-motion"
 import { analyzeText, analyzeUrl } from "../services/api"
 
+const STAGGER = {
+  container: { animate: { transition: { staggerChildren: 0.1 } } },
+  item: {
+    initial: { opacity: 0, y: 20 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+  },
+}
+
+const STATS = [
+  { value: "4",    label: "Analysis Dimensions" },
+  { value: "~2s",  label: "Avg Response Time"   },
+  { value: "100%", label: "Open Source"          },
+]
+
+const PILLS = ["Sentence-Level", "Bias Detection", "Emotion Analysis", "Factual Scoring"]
+
 export default function Home() {
-  const [mode, setMode] = useState("text") // "text" | "url"
-  const [input, setInput] = useState("")
+  const [mode, setMode]       = useState("text")
+  const [input, setInput]     = useState("")
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError]     = useState("")
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError("")
     setLoading(true)
-
     try {
       const res = mode === "text"
         ? await analyzeText(input)
@@ -27,60 +43,178 @@ export default function Home() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-20">
-      <h1 className="text-4xl font-bold text-center mb-2">
-        Is this article credible?
-      </h1>
-      <p className="text-center text-gray-400 mb-10">
-        Paste an article or enter a URL for instant sentence-level credibility analysis.
-      </p>
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
 
-      {/* Mode toggle */}
-      <div className="flex bg-gray-800 rounded-lg p-1 mb-6 w-fit mx-auto">
-        {["text", "url"].map((m) => (
-          <button
-            key={m}
-            onClick={() => { setMode(m); setInput("") }}
-            className={`px-6 py-2 rounded-md text-sm font-medium transition-colors ${
-              mode === m ? "bg-blue-600 text-white" : "text-gray-400 hover:text-white"
-            }`}
-          >
-            {m === "text" ? "Paste Text" : "Enter URL"}
-          </button>
-        ))}
-      </div>
+      {/* ── Content ── */}
+      <motion.div
+        variants={STAGGER.container}
+        initial="initial"
+        animate="animate"
+        className="relative z-10 flex flex-col items-center text-center px-4 w-full max-w-2xl mx-auto"
+      >
+        {/* Feature pills */}
+        <motion.div variants={STAGGER.item} className="flex flex-wrap justify-center gap-2 mb-10">
+          {PILLS.map((p) => (
+            <span
+              key={p}
+              className="px-3 py-1 rounded-full text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-slate-400 backdrop-blur-sm tracking-wide"
+            >
+              {p}
+            </span>
+          ))}
+        </motion.div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {mode === "text" ? (
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Paste article text here (minimum 50 characters)..."
-            rows={10}
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500 resize-none"
-            required
-          />
-        ) : (
-          <input
-            type="url"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="https://example.com/article"
-            className="w-full bg-gray-800 border border-gray-700 rounded-lg p-4 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:border-blue-500"
-            required
-          />
-        )}
-
-        {error && <p className="text-red-400 text-sm">{error}</p>}
-
-        <button
-          type="submit"
-          disabled={loading || !input.trim()}
-          className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-gray-700 disabled:text-gray-500 text-white font-semibold py-3 rounded-lg transition-colors"
+        {/* Heading */}
+        <motion.h1
+          variants={STAGGER.item}
+          className="text-5xl sm:text-7xl font-bold leading-tight tracking-tight mb-4"
         >
-          {loading ? "Analyzing..." : "Analyze"}
-        </button>
-      </form>
-    </div>
+          <span className="text-white">Detect</span>{" "}
+          <span
+            className="inline-block"
+            style={{
+              background: "linear-gradient(135deg, #06b6d4 0%, #a855f7 60%, #06b6d4 100%)",
+              backgroundSize: "200% auto",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            Misinformation
+          </span>
+          <br />
+          <span className="text-white">Instantly.</span>
+        </motion.h1>
+
+        {/* Subtitle */}
+        <motion.p
+          variants={STAGGER.item}
+          className="text-slate-400 text-lg sm:text-xl max-w-xl mb-10 leading-relaxed"
+        >
+          AI-powered, sentence-level credibility analysis using RoBERTa.
+          Paste any article or URL and get results in seconds.
+        </motion.p>
+
+        {/* Analysis card */}
+        <motion.div variants={STAGGER.item} className="w-full mb-10">
+          <div
+            className="rounded-2xl p-[1px]"
+            style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.3), rgba(168,85,247,0.3), rgba(6,182,212,0.1))" }}
+          >
+            <div className="rounded-2xl bg-[#07101f]/90 backdrop-blur-xl p-6">
+              {/* Mode toggle */}
+              <div className="flex bg-black/40 rounded-xl p-1 mb-5 border border-white/[0.05]">
+                {[
+                  { key: "text", label: "Paste Text" },
+                  { key: "url",  label: "Enter URL"  },
+                ].map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => { setMode(key); setInput("") }}
+                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                      mode === key
+                        ? "bg-cyan-500/[0.15] text-cyan-400 border border-cyan-500/25"
+                        : "text-slate-500 hover:text-slate-300"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {mode === "text" ? (
+                  <textarea
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Paste your article here — minimum 50 characters..."
+                    rows={6}
+                    className="input-neon w-full rounded-xl p-4 text-sm leading-relaxed resize-none font-mono"
+                    required
+                  />
+                ) : (
+                  <input
+                    type="url"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="https://example.com/article"
+                    className="input-neon w-full rounded-xl p-4 text-sm font-mono"
+                    required
+                  />
+                )}
+
+                {error && (
+                  <div className="flex items-start gap-2.5 text-red-400 text-sm bg-red-500/[0.08] border border-red-500/20 rounded-xl px-4 py-3">
+                    <span className="shrink-0 mt-px">⚠</span>
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    type="submit"
+                    disabled={loading || !input.trim()}
+                    className="btn-neon flex-1 py-3 rounded-xl text-sm tracking-wider uppercase font-semibold"
+                  >
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2.5">
+                        <span className="flex gap-1">
+                          <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                          <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                          <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                        </span>
+                        Analyzing…
+                      </span>
+                    ) : (
+                      <span className="flex items-center justify-center gap-2">
+                        Analyze Article
+                        <span className="text-base">→</span>
+                      </span>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate("/history")}
+                    className="px-5 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.15] transition-all duration-200 backdrop-blur-sm tracking-wide uppercase"
+                  >
+                    History
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Stats */}
+        <motion.div
+          variants={STAGGER.item}
+          className="grid grid-cols-3 gap-6 w-full"
+        >
+          {STATS.map(({ value, label }, i) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+              className="flex flex-col items-center"
+            >
+              <span
+                className="text-3xl font-bold font-mono mb-1"
+                style={{
+                  background: "linear-gradient(135deg, #67e8f9, #c084fc)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {value}
+              </span>
+              <span className="text-xs text-slate-600 uppercase tracking-widest">{label}</span>
+            </motion.div>
+          ))}
+        </motion.div>
+      </motion.div>
+    </section>
   )
 }

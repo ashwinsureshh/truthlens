@@ -2,7 +2,131 @@
 @tailwind components;
 @tailwind utilities;
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  @apply bg-gray-950 text-gray-100;
+  background-color: #030712;
+  color: #e2e8f0;
+  font-family: "Inter", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Grid background ─────────────────────────── */
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(6, 182, 212, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(6, 182, 212, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ── Glassmorphism ──────────────────────────── */
+.glass {
+  background: rgba(10, 15, 30, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(6, 182, 212, 0.1);
+}
+
+.glass-card {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(6, 182, 212, 0.13);
+  border-radius: 16px;
+}
+
+/* ── Neon glows ─────────────────────────────── */
+.glow-cyan {
+  box-shadow: 0 0 30px rgba(6, 182, 212, 0.18), 0 0 80px rgba(6, 182, 212, 0.06);
+}
+
+/* ── Gradient text ──────────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #06b6d4 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Neon button ────────────────────────────── */
+.btn-neon {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15), rgba(168, 85, 247, 0.15));
+  border: 1px solid rgba(6, 182, 212, 0.35);
+  color: #67e8f9;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.btn-neon:hover:not(:disabled) {
+  border-color: rgba(6, 182, 212, 0.65);
+  box-shadow: 0 0 24px rgba(6, 182, 212, 0.25), 0 0 60px rgba(6, 182, 212, 0.08);
+  color: #e0f9ff;
+}
+
+.btn-neon:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+/* ── Neon input ─────────────────────────────── */
+.input-neon {
+  background: rgba(4, 8, 18, 0.8);
+  border: 1px solid rgba(6, 182, 212, 0.13);
+  color: #e2e8f0;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.input-neon::placeholder {
+  color: rgba(100, 116, 139, 0.7);
+}
+
+.input-neon:focus {
+  border-color: rgba(6, 182, 212, 0.45);
+  box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.07), 0 0 20px rgba(6, 182, 212, 0.08);
+}
+
+/* ── Loading dots ───────────────────────────── */
+.dot-bounce {
+  display: inline-block;
+  animation: bounce-dot 1.2s ease-in-out infinite;
+}
+
+.dot-bounce:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.dot-bounce:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes bounce-dot {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-5px);
+    opacity: 1;
+  }
+}
+
+/* ── Scrollbar ──────────────────────────────── */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #050a14;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(6, 182, 212, 0.25);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(6, 182, 212, 0.45);
 }
