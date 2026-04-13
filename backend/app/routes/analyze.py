@@ -63,7 +63,7 @@ def analyze_url_route():
     if error:
         return jsonify({"error": error}), 422
 
-    result = analyze_text(text)
+    result = analyze_text(text, url=url)   # pass url for in-memory caching
     user_id = get_optional_user_id()
 
     analysis = Analysis(
