@@ -53,13 +53,23 @@ def _is_finetuned_available() -> bool:
     return os.path.isfile(config_path)
 
 
+def _get_device():
+    """Pick the best available device: CUDA → MPS → CPU."""
+    import torch
+    if torch.cuda.is_available():
+        logger.info(f"GPU detected: {torch.cuda.get_device_name(0)}")
+        return 0          # CUDA device 0
+    if torch.backends.mps.is_available():
+        return "mps"      # Apple Silicon
+    return -1             # CPU fallback
+
+
 def _get_finetuned():
     global _finetuned_classifier
     if _finetuned_classifier is None:
         from transformers import pipeline
-        import torch
-        device = "mps" if torch.backends.mps.is_available() else -1
-        logger.info(f"Loading fine-tuned RoBERTa from {MODEL_PATH}...")
+        device = _get_device()
+        logger.info(f"Loading fine-tuned RoBERTa from {MODEL_PATH} on device={device}...")
         _finetuned_classifier = pipeline(
             "text-classification",
             model=MODEL_PATH,
@@ -74,13 +84,12 @@ def _get_zeroshot():
     global _zeroshot_classifier
     if _zeroshot_classifier is None:
         from transformers import pipeline
-        import torch
-        device = "mps" if torch.backends.mps.is_available() else -1
+        device = _get_device()
         logger.info("Loading BART zero-shot model...")
         _zeroshot_classifier = pipeline(
             "zero-shot-classification",
             model="facebook/bart-large-mnli",
-            device=device,
+            device=device,  # noqa
         )
         logger.info("BART model loaded.")
     return _zeroshot_classifier
