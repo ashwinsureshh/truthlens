@@ -26,9 +26,17 @@ export default function Home() {
   const [error, setError]     = useState("")
   const navigate = useNavigate()
 
+  const MAX_CHARS = 8000
+
   async function handleSubmit(e) {
     e.preventDefault()
     setError("")
+
+    if (mode === "text" && input.length > MAX_CHARS) {
+      setError(`Text is too long (${input.length.toLocaleString()} chars). Please keep it under ${MAX_CHARS.toLocaleString()} characters.`)
+      return
+    }
+
     setLoading(true)
     try {
       const res = mode === "text"
@@ -36,7 +44,12 @@ export default function Home() {
         : await analyzeUrl(input)
       navigate(`/results/${res.data.analysis_id}`)
     } catch (err) {
-      setError(err.response?.data?.error || "Something went wrong. Please try again.")
+      const status = err.response?.status
+      if (status === 429) {
+        setError("Too many requests — you've hit the rate limit. Please wait a minute and try again.")
+      } else {
+        setError(err.response?.data?.error || "Something went wrong. Please try again.")
+      }
     } finally {
       setLoading(false)
     }
@@ -124,14 +137,22 @@ export default function Home() {
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 {mode === "text" ? (
-                  <textarea
-                    value={input}
-                    onChange={(e) => setInput(e.target.value)}
-                    placeholder="Paste your article here — minimum 50 characters..."
-                    rows={6}
-                    className="input-neon w-full rounded-xl p-4 text-sm leading-relaxed resize-none font-mono"
-                    required
-                  />
+                  <div className="relative">
+                    <textarea
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Paste your article here — minimum 50 characters..."
+                      rows={6}
+                      className="input-neon w-full rounded-xl p-4 text-sm leading-relaxed resize-none font-mono"
+                      required
+                    />
+                    <span className={`absolute bottom-3 right-3 text-xs font-mono ${
+                      input.length > MAX_CHARS ? "text-red-400" :
+                      input.length > MAX_CHARS * 0.85 ? "text-amber-400" : "text-slate-600"
+                    }`}>
+                      {input.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
+                    </span>
+                  </div>
                 ) : (
                   <input
                     type="url"

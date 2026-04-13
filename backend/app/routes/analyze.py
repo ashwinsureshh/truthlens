@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
-from .. import db
+from .. import db, limiter
 from ..models.analysis import Analysis
 from ..services.scraper import scrape_url
 from ..services.analyzer import analyze_text
@@ -19,12 +19,16 @@ def get_optional_user_id():
 
 
 @analyze_bp.route("/analyze/text", methods=["POST"])
+@limiter.limit("5/minute;20/hour")
 def analyze_text_route():
     data = request.get_json()
     text = data.get("text", "").strip()
 
     if not text or len(text) < 50:
         return jsonify({"error": "Please provide at least 50 characters of text"}), 400
+
+    if len(text) > 8000:
+        return jsonify({"error": "Text is too long. Please keep it under 8,000 characters."}), 400
 
     result = analyze_text(text)
     user_id = get_optional_user_id()
@@ -47,6 +51,7 @@ def analyze_text_route():
 
 
 @analyze_bp.route("/analyze/url", methods=["POST"])
+@limiter.limit("5/minute;20/hour")
 def analyze_url_route():
     data = request.get_json()
     url = data.get("url", "").strip()

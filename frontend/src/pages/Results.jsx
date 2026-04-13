@@ -54,7 +54,7 @@ export default function Results() {
         </div>
         <p className="text-red-400 mb-5">{error}</p>
         <Link to="/" className="btn-neon inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm">
-          back New analysis
+          ← New analysis
         </Link>
       </div>
     </div>
@@ -73,11 +73,14 @@ export default function Results() {
       <div className="relative max-w-5xl mx-auto px-4 py-12 space-y-5 animate-slide-up">
 
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2 text-sm text-slate-600 hover:text-cyan-400 transition-colors group">
-            <span className="group-hover:-translate-x-0.5 transition-transform inline-block">back</span>
-            New analysis
+          <Link to="/" className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-cyan-400 transition-colors group">
+            <span className="group-hover:-translate-x-0.5 transition-transform inline-block">←</span>
+            <span>Back</span>
           </Link>
           <div className="flex items-center gap-2">
+            <Link to="/" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-cyan-400 bg-white/[0.04] border border-white/[0.07] hover:border-cyan-500/30 transition-all">
+              + New analysis
+            </Link>
             <button onClick={handleShare} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-200 bg-white/[0.04] border border-white/[0.07] hover:border-white/[0.14] transition-all">
               {copied ? "Copied!" : "Share"}
             </button>

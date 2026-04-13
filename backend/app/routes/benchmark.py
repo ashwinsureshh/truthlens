@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import verify_jwt_in_request, get_jwt_identity
 from ..models.analysis import Analysis
+from ..services.benchmark import get_benchmark_scores
 
 benchmark_bp = Blueprint("benchmark", __name__)
 
@@ -9,20 +10,20 @@ benchmark_bp = Blueprint("benchmark", __name__)
 def get_benchmark(analysis_id):
     try:
         verify_jwt_in_request(optional=True)
-        user_id = get_jwt_identity()
     except Exception:
-        user_id = None
+        pass
 
     analysis = Analysis.query.get(analysis_id)
     if not analysis:
         return jsonify({"error": "Analysis not found"}), 404
 
-    # TODO Week 7: integrate ClaimBuster + Google Fact Check API
-    benchmark = {
-        "analysis_id": analysis_id,
-        "truthlens_score": analysis.overall_score,
-        "claimbuster": None,   # populated in Week 7
-        "google_fact_check": None,  # populated in Week 7
-        "note": "Benchmark comparison coming in Week 7",
-    }
-    return jsonify(benchmark), 200
+    scores = get_benchmark_scores(analysis)
+
+    return jsonify({
+        "analysis_id":       analysis_id,
+        "truthlens_score":   analysis.overall_score,
+        "claimbuster_score": scores["claimbuster_score"],
+        "google_score":      scores["google_score"],
+        "claimbuster_enabled": scores["claimbuster_enabled"],
+        "google_enabled":      scores["google_enabled"],
+    }), 200

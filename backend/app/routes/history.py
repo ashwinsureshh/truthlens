@@ -1,8 +1,17 @@
 from flask import Blueprint, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from ..models.analysis import Analysis
 
 history_bp = Blueprint("history", __name__)
+
+
+@history_bp.route("/analyze/<int:analysis_id>", methods=["GET"])
+def get_analysis_public(analysis_id):
+    """Public endpoint — returns any analysis by ID (guest + logged-in users)."""
+    analysis = Analysis.query.get(analysis_id)
+    if not analysis:
+        return jsonify({"error": "Analysis not found"}), 404
+    return jsonify(analysis.to_dict()), 200
 
 
 @history_bp.route("/history", methods=["GET"])
