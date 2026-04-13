@@ -1,4 +1,5 @@
 import { Link, useLocation } from "react-router-dom"
+import { motion } from "framer-motion"
 
 export default function Navbar() {
   const token = localStorage.getItem("token")
@@ -6,19 +7,25 @@ export default function Navbar() {
   const isActive = (path) => location.pathname === path
 
   return (
-    <nav className="fixed top-0 w-full z-50 glass border-b border-cyan-500/10">
-      {/* Top accent line */}
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+    <nav className="fixed top-0 w-full z-50 glass border-b border-white/[0.06]">
+      {/* Top accent beam */}
+      <div className="absolute top-0 left-0 right-0 h-px overflow-hidden">
+        <motion.div
+          className="h-full w-1/3"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent)" }}
+          animate={{ x: ["-100%", "400%"] }}
+          transition={{ duration: 4, repeat: Infinity, ease: "linear", repeatDelay: 3 }}
+        />
+      </div>
 
-      <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/25 flex items-center justify-center group-hover:border-cyan-400/50 transition-all duration-300">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-glow-pulse" />
+          <div className="w-6 h-6 border border-white/30 rounded-sm flex items-center justify-center group-hover:border-white/70 transition-all duration-300">
+            <div className="w-1.5 h-1.5 bg-white rounded-full" />
           </div>
-          <span className="text-lg font-bold tracking-tight">
-            <span className="gradient-text">Truth</span>
-            <span className="text-slate-300">Lens</span>
+          <span className="text-sm font-bold tracking-[0.15em] uppercase font-terminal text-white">
+            Truth<span className="text-white/40">Lens</span>
           </span>
         </Link>
 
@@ -29,14 +36,14 @@ export default function Navbar() {
           {token ? (
             <button
               onClick={() => { localStorage.removeItem("token"); window.location.href = "/" }}
-              className="px-4 py-1.5 text-sm text-slate-500 hover:text-slate-300 transition-colors ml-1"
+              className="px-4 py-1.5 text-xs text-white/30 hover:text-white/70 transition-colors ml-1 font-terminal tracking-widest uppercase"
             >
               Logout
             </button>
           ) : (
             <Link
               to="/login"
-              className="ml-2 px-4 py-1.5 text-sm rounded-lg btn-neon"
+              className="ml-2 px-4 py-1.5 text-xs rounded btn-outline font-terminal tracking-widest uppercase"
             >
               Sign In
             </Link>
@@ -51,10 +58,10 @@ function NavLink({ to, label, active }) {
   return (
     <Link
       to={to}
-      className={`px-4 py-1.5 text-sm rounded-lg transition-all duration-200 ${
+      className={`px-4 py-1.5 text-xs rounded transition-all duration-200 font-terminal tracking-widest uppercase ${
         active
-          ? "text-cyan-400 bg-cyan-500/10 border border-cyan-500/20"
-          : "text-slate-500 hover:text-slate-200 hover:bg-white/5"
+          ? "text-white bg-white/[0.07] border border-white/[0.15]"
+          : "text-white/30 hover:text-white/70 hover:bg-white/[0.04]"
       }`}
     >
       {label}

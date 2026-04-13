@@ -31,91 +31,104 @@ export default function Results() {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  function handleExport() { window.print() }
-
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="flex flex-col items-center gap-5">
         <div className="flex gap-1.5">
-          <span className="dot-bounce w-2 h-2 rounded-full bg-cyan-400" />
-          <span className="dot-bounce w-2 h-2 rounded-full bg-cyan-400" />
-          <span className="dot-bounce w-2 h-2 rounded-full bg-cyan-400" />
+          <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
+          <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
+          <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
         </div>
-        <p className="text-slate-600 text-sm tracking-wide">Loading analysis...</p>
+        <p className="font-terminal text-[10px] text-white/20 tracking-[0.3em] uppercase">
+          Loading analysis...
+        </p>
       </div>
     </div>
   )
 
   if (error) return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="glass-card p-10 text-center max-w-sm w-full">
-        <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4">
-          <span className="text-red-400 text-xl">warning</span>
-        </div>
-        <p className="text-red-400 mb-5">{error}</p>
-        <Link to="/" className="btn-neon inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm">
-          ← New analysis
+      <div className="spotlight-card p-10 text-center max-w-sm w-full">
+        <p className="font-terminal text-white/40 text-xs mb-6">! ERR :: {error}</p>
+        <Link to="/" className="btn-outline px-5 py-2 rounded-sm text-[10px] font-terminal tracking-[0.2em] uppercase inline-flex items-center gap-2">
+          ← NEW ANALYSIS
         </Link>
       </div>
     </div>
   )
 
   const { overall_score, scores, sentence_results } = data
-  const label = overall_score < 40 ? "Credible" : overall_score < 70 ? "Uncertain" : "Suspicious"
-  const labelClasses = overall_score < 40
-    ? "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
-    : overall_score < 70
-    ? "text-amber-400 bg-amber-500/10 border-amber-500/20"
-    : "text-red-400 bg-red-500/10 border-red-500/20"
+  const label   = overall_score < 40 ? "CREDIBLE" : overall_score < 70 ? "UNCERTAIN" : "SUSPICIOUS"
 
   return (
     <div className="min-h-screen">
-      <div className="relative max-w-5xl mx-auto px-4 py-12 space-y-5 animate-slide-up">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="relative max-w-5xl mx-auto px-4 py-10 space-y-4"
+      >
 
+        {/* Top bar */}
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-1.5 text-sm text-slate-400 hover:text-cyan-400 transition-colors group">
-            <span className="group-hover:-translate-x-0.5 transition-transform inline-block">←</span>
-            <span>Back</span>
+          <Link to="/" className="flex items-center gap-1.5 font-terminal text-[10px] text-white/25 hover:text-white/60 transition-colors tracking-widest uppercase">
+            ← BACK
           </Link>
           <div className="flex items-center gap-2">
-            <Link to="/" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-cyan-400 bg-white/[0.04] border border-white/[0.07] hover:border-cyan-500/30 transition-all">
-              + New analysis
+            <Link to="/" className="btn-outline px-3 py-1.5 rounded-sm text-[10px] font-terminal tracking-widest uppercase">
+              + NEW
             </Link>
-            <button onClick={handleShare} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-200 bg-white/[0.04] border border-white/[0.07] hover:border-white/[0.14] transition-all">
-              {copied ? "Copied!" : "Share"}
+            <button onClick={handleShare}
+              className="btn-outline px-3 py-1.5 rounded-sm text-[10px] font-terminal tracking-widest uppercase"
+            >
+              {copied ? "COPIED!" : "SHARE"}
             </button>
-            <button onClick={handleExport} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-500 hover:text-slate-200 bg-white/[0.04] border border-white/[0.07] hover:border-white/[0.14] transition-all">
-              Export
+            <button onClick={() => window.print()}
+              className="btn-outline px-3 py-1.5 rounded-sm text-[10px] font-terminal tracking-widest uppercase"
+            >
+              EXPORT
             </button>
-            <span className="text-xs text-slate-700 font-mono tracking-wider ml-1">ID {id}</span>
+            <span className="font-terminal text-[9px] text-white/15 tracking-widest ml-1">#{id}</span>
           </div>
         </div>
 
-        <div className="glass-card p-5 flex items-center justify-between">
+        {/* Header card */}
+        <div className="spotlight-card p-5 flex items-center justify-between border-beam">
           <div>
-            <h2 className="text-lg font-bold gradient-text mb-0.5">Analysis Complete</h2>
-            <p className="text-xs text-slate-600">Sentence-level credibility breakdown</p>
+            <h2 className="font-terminal text-sm font-bold text-white tracking-widest mb-0.5">
+              ANALYSIS COMPLETE
+            </h2>
+            <p className="font-terminal text-[9px] text-white/20 tracking-[0.2em] uppercase">
+              Sentence-level credibility breakdown
+            </p>
           </div>
-          <span className={"text-xs uppercase tracking-widest font-semibold px-3 py-1.5 rounded-full border " + labelClasses}>
+          <span className="font-terminal text-[10px] tracking-[0.25em] uppercase px-4 py-1.5 border border-white/15 rounded-sm text-white/50">
             {label}
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="glass-card p-6 flex flex-col items-center glow-cyan">
-            <p className="text-xs text-slate-600 uppercase tracking-widest mb-6 font-medium">Overall Credibility</p>
+        {/* Score + Radar grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="spotlight-card p-6 flex flex-col items-center">
+            <p className="font-terminal text-[9px] text-white/20 tracking-[0.2em] uppercase mb-6">
+              // OVERALL CREDIBILITY
+            </p>
             <CredibilityGauge score={overall_score} />
           </div>
-          <div className="glass-card p-6 flex flex-col">
-            <p className="text-xs text-slate-600 uppercase tracking-widest mb-3 font-medium">Dimension Breakdown</p>
+          <div className="spotlight-card p-6 flex flex-col">
+            <p className="font-terminal text-[9px] text-white/20 tracking-[0.2em] uppercase mb-3">
+              // DIMENSION BREAKDOWN
+            </p>
             <RadarChart scores={scores} />
             <div className="grid grid-cols-2 gap-2 mt-4">
               {Object.entries(scores ?? {}).map(([key, val]) => {
-                const c = val < 40 ? "text-emerald-400" : val < 70 ? "text-amber-400" : "text-red-400"
+                const op = val < 40 ? "text-white" : val < 70 ? "text-white/50" : "text-white/25"
                 return (
-                  <div key={key} className="flex items-center justify-between bg-black/30 rounded-lg px-3 py-2 border border-white/[0.05]">
-                    <span className="text-xs text-slate-500 capitalize">{key}</span>
-                    <span className={"text-xs font-bold font-mono " + c}>{val?.toFixed(0)}</span>
+                  <div key={key}
+                    className="flex items-center justify-between bg-white/[0.02] rounded-sm px-3 py-2 border border-white/[0.05]"
+                  >
+                    <span className="font-terminal text-[9px] text-white/25 uppercase tracking-widest capitalize">{key}</span>
+                    <span className={`font-terminal text-xs font-bold ${op}`}>{val?.toFixed(0)}</span>
                   </div>
                 )
               })}
@@ -123,21 +136,28 @@ export default function Results() {
           </div>
         </div>
 
-        <div className="glass-card overflow-hidden">
+        {/* Tabs panel */}
+        <div className="spotlight-card overflow-hidden">
           <div className="flex border-b border-white/[0.06]">
             {TABS.map((t) => (
               <button key={t} onClick={() => setTab(t)}
-                className={"px-6 py-3.5 text-sm font-medium transition-all duration-200 relative " + (tab === t ? "text-cyan-400" : "text-slate-500 hover:text-slate-300")}
+                className={`px-6 py-3.5 font-terminal text-[10px] tracking-[0.2em] uppercase transition-all duration-200 relative ${
+                  tab === t ? "text-white" : "text-white/20 hover:text-white/50"
+                }`}
               >
                 {t}
                 {tab === t && (
-                  <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-cyan-500 to-purple-500" />
+                  <motion.div layoutId="tab-line"
+                    className="absolute bottom-0 left-0 right-0 h-px bg-white/50"
+                  />
                 )}
               </button>
             ))}
             {tab === "Benchmark" && (
-              <button onClick={() => navigate("/benchmark/" + id)} className="ml-auto mr-4 my-2 px-3 py-1 rounded-lg text-xs text-slate-500 hover:text-cyan-400 border border-white/[0.07] hover:border-cyan-500/20 transition-all">
-                Full report
+              <button onClick={() => navigate("/benchmark/" + id)}
+                className="ml-auto mr-4 my-2 btn-outline px-3 py-1 rounded-sm font-terminal text-[9px] tracking-widest uppercase"
+              >
+                FULL REPORT
               </button>
             )}
           </div>
@@ -145,19 +165,32 @@ export default function Results() {
           <div className="p-6">
             <AnimatePresence mode="wait">
               {tab === "Overview" && (
-                <motion.div key="overview" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                  <p className="text-xs text-slate-600 uppercase tracking-widest mb-5 font-medium">Sentence Analysis</p>
+                <motion.div key="ov"
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase mb-5">
+                    // SENTENCE ANALYSIS
+                  </p>
                   <SentenceHighlights sentences={sentence_results} />
                 </motion.div>
               )}
               {tab === "Heatmap" && (
-                <motion.div key="heatmap" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
-                  <p className="text-xs text-slate-600 uppercase tracking-widest mb-5 font-medium">Intensity Heatmap</p>
+                <motion.div key="hm"
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase mb-5">
+                    // INTENSITY HEATMAP
+                  </p>
                   <SentenceHeatmap sentences={sentence_results} />
                 </motion.div>
               )}
               {tab === "Benchmark" && (
-                <motion.div key="benchmark" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
+                <motion.div key="bm"
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
                   <BenchmarkPreview score={overall_score} id={id} />
                 </motion.div>
               )}
@@ -165,49 +198,56 @@ export default function Results() {
           </div>
         </div>
 
-      </div>
+      </motion.div>
     </div>
   )
 }
 
 function BenchmarkPreview({ score, id }) {
   const tools = [
-    { name: "TruthLens",         score: score,      color: "#06b6d4", note: "RoBERTa, sentence-level" },
-    { name: "ClaimBuster",       score: score + 8,  color: "#a855f7", note: "SVM-based claim scoring"  },
-    { name: "Google Fact Check", score: score - 5,  color: "#f59e0b", note: "Knowledge graph lookup"   },
+    { name: "TRUTHLENS",         score: score,      note: "RoBERTa // sentence-level" },
+    { name: "CLAIMBUSTER",       score: score + 8,  note: "SVM-based claim scoring"   },
+    { name: "GOOGLE FACT CHECK", score: score - 5,  note: "Knowledge graph lookup"    },
   ]
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-5">
-        <p className="text-xs text-slate-600 uppercase tracking-widest font-medium">Benchmark Comparison</p>
-        <span className="text-xs bg-amber-500/10 border border-amber-500/20 text-amber-500 px-2 py-0.5 rounded-full">Stub, Live in Week 7</span>
+        <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase">
+          // BENCHMARK COMPARISON
+        </p>
+        <span className="font-terminal text-[9px] text-white/20 border border-white/10 px-2 py-0.5 rounded-sm tracking-widest">
+          LIVE DATA PENDING
+        </span>
       </div>
       {tools.map((t) => {
         const pct = Math.min(100, Math.max(0, t.score))
-        const lbl = pct < 40 ? "Credible" : pct < 70 ? "Uncertain" : "Suspicious"
+        const op  = pct < 40 ? 1 : pct < 70 ? 0.5 : 0.25
         return (
-          <div key={t.name} className="bg-black/20 rounded-xl p-4 border border-white/[0.05]">
+          <div key={t.name} className="bg-white/[0.02] rounded-sm p-4 border border-white/[0.05]">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-sm font-semibold text-slate-200">{t.name}</p>
-                <p className="text-xs text-slate-600 mt-0.5">{t.note}</p>
+                <p className="font-terminal text-xs font-bold text-white tracking-widest">{t.name}</p>
+                <p className="font-terminal text-[9px] text-white/20 mt-0.5 tracking-widest">{t.note}</p>
               </div>
-              <span className="text-xl font-bold font-mono" style={{ color: t.color }}>{pct}</span>
+              <span className="font-terminal text-xl font-bold" style={{ color: `rgba(255,255,255,${op})` }}>
+                {pct}
+              </span>
             </div>
-            <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+            <div className="h-px bg-white/[0.06] rounded-full overflow-hidden">
               <motion.div
                 initial={{ width: 0 }} animate={{ width: pct + "%" }}
                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="h-full rounded-full"
-                style={{ background: t.color, boxShadow: "0 0 10px " + t.color + "80" }}
+                style={{ background: `rgba(255,255,255,${op})` }}
               />
             </div>
-            <p className="text-xs mt-2" style={{ color: t.color }}>{lbl}</p>
           </div>
         )
       })}
-      <Link to={"/benchmark/" + id} className="btn-neon w-full py-2.5 rounded-xl text-sm text-center block mt-2">
-        View Full Benchmark Report
+      <Link to={"/benchmark/" + id}
+        className="btn-outline w-full py-2.5 rounded-sm font-terminal text-[10px] tracking-[0.2em] uppercase text-center block mt-2"
+      >
+        VIEW FULL BENCHMARK REPORT →
       </Link>
     </div>
   )

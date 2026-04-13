@@ -1,20 +1,20 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { analyzeText, analyzeUrl } from "../services/api"
 
 const STAGGER = {
-  container: { animate: { transition: { staggerChildren: 0.1 } } },
+  container: { animate: { transition: { staggerChildren: 0.08 } } },
   item: {
-    initial: { opacity: 0, y: 20 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
+    initial: { opacity: 0, y: 24 },
+    animate: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
   },
 }
 
 const STATS = [
-  { value: "4",    label: "Analysis Dimensions" },
-  { value: "~2s",  label: "Avg Response Time"   },
-  { value: "100%", label: "Open Source"          },
+  { value: "4",    label: "Analysis Dims" },
+  { value: "~2s",  label: "Avg Speed"     },
+  { value: "100%", label: "Open Source"   },
 ]
 
 const PILLS = ["Sentence-Level", "Bias Detection", "Emotion Analysis", "Factual Scoring"]
@@ -25,216 +25,185 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState("")
   const navigate = useNavigate()
+  const cardRef = useRef(null)
 
   const MAX_CHARS = 8000
+
+  // Spotlight effect
+  function handleMouseMove(e) {
+    const rect = cardRef.current?.getBoundingClientRect()
+    if (!rect) return
+    const x = ((e.clientX - rect.left) / rect.width)  * 100
+    const y = ((e.clientY - rect.top)  / rect.height) * 100
+    cardRef.current.style.setProperty("--mouse-x", x + "%")
+    cardRef.current.style.setProperty("--mouse-y", y + "%")
+  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError("")
-
     if (mode === "text" && input.length > MAX_CHARS) {
-      setError(`Text is too long (${input.length.toLocaleString()} chars). Please keep it under ${MAX_CHARS.toLocaleString()} characters.`)
+      setError(`Text is too long (${input.length.toLocaleString()} chars). Max ${MAX_CHARS.toLocaleString()}.`)
       return
     }
-
     setLoading(true)
     try {
-      const res = mode === "text"
-        ? await analyzeText(input)
-        : await analyzeUrl(input)
+      const res = mode === "text" ? await analyzeText(input) : await analyzeUrl(input)
       navigate(`/results/${res.data.analysis_id}`)
     } catch (err) {
       const status = err.response?.status
-      if (status === 429) {
-        setError("Too many requests — you've hit the rate limit. Please wait a minute and try again.")
-      } else {
-        setError(err.response?.data?.error || "Something went wrong. Please try again.")
-      }
+      if (status === 429) setError("Rate limit hit — wait a moment and try again.")
+      else setError(err.response?.data?.error || "Something went wrong.")
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden">
+    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4">
 
-      {/* ── Content ── */}
       <motion.div
         variants={STAGGER.container}
         initial="initial"
         animate="animate"
-        className="relative z-10 flex flex-col items-center text-center px-4 w-full max-w-2xl mx-auto"
+        className="relative z-10 flex flex-col items-center text-center w-full max-w-xl mx-auto"
       >
-        {/* Feature pills */}
-        <motion.div variants={STAGGER.item} className="flex flex-wrap justify-center gap-2 mb-10">
-          {PILLS.map((p) => (
-            <span
-              key={p}
-              className="px-3 py-1 rounded-full text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-slate-400 backdrop-blur-sm tracking-wide"
-            >
-              {p}
-            </span>
-          ))}
+
+        {/* System label */}
+        <motion.div variants={STAGGER.item} className="mb-8">
+          <span className="font-terminal text-xs tracking-[0.3em] text-white/60 uppercase border border-white/30 px-4 py-1.5 rounded-sm">
+            SYSTEM_ONLINE // v2.0
+          </span>
         </motion.div>
 
         {/* Heading */}
-        <motion.h1
-          variants={STAGGER.item}
-          className="text-5xl sm:text-7xl font-bold leading-tight tracking-tight mb-4"
+        <motion.h1 variants={STAGGER.item}
+          className="text-5xl sm:text-7xl font-bold leading-[0.95] tracking-tight mb-6 text-white"
         >
-          <span className="text-white">Detect</span>{" "}
           <span
-            className="inline-block"
-            style={{
-              background: "linear-gradient(135deg, #06b6d4 0%, #a855f7 60%, #06b6d4 100%)",
-              backgroundSize: "200% auto",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            Misinformation
-          </span>
-          <br />
-          <span className="text-white">Instantly.</span>
+            className="glitch block"
+            data-text="TRUTH"
+          >TRUTH</span>
+          <span className="block text-white/50">LENS</span>
         </motion.h1>
 
         {/* Subtitle */}
-        <motion.p
-          variants={STAGGER.item}
-          className="text-slate-400 text-lg sm:text-xl max-w-xl mb-10 leading-relaxed"
+        <motion.p variants={STAGGER.item}
+          className="font-terminal text-xs text-white/70 tracking-widest mb-10 leading-relaxed"
         >
-          AI-powered, sentence-level credibility analysis using RoBERTa.
-          Paste any article or URL and get results in seconds.
+          &gt; AI-POWERED CREDIBILITY ANALYSIS ENGINE<br />
+          &gt; ROBERTA MODEL // SENTENCE-LEVEL DETECTION
         </motion.p>
 
-        {/* Analysis card */}
-        <motion.div variants={STAGGER.item} className="w-full mb-10">
-          <div
-            className="rounded-2xl p-[1px]"
-            style={{ background: "linear-gradient(135deg, rgba(6,182,212,0.3), rgba(168,85,247,0.3), rgba(6,182,212,0.1))" }}
-          >
-            <div className="rounded-2xl bg-[#07101f]/90 backdrop-blur-xl p-6">
-              {/* Mode toggle */}
-              <div className="flex bg-black/40 rounded-xl p-1 mb-5 border border-white/[0.05]">
-                {[
-                  { key: "text", label: "Paste Text" },
-                  { key: "url",  label: "Enter URL"  },
-                ].map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => { setMode(key); setInput("") }}
-                    className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                      mode === key
-                        ? "bg-cyan-500/[0.15] text-cyan-400 border border-cyan-500/25"
-                        : "text-slate-500 hover:text-slate-300"
-                    }`}
-                  >
-                    {label}
-                  </button>
-                ))}
-              </div>
+        {/* Feature pills */}
+        <motion.div variants={STAGGER.item} className="flex flex-wrap justify-center gap-2 mb-8">
+          {PILLS.map((p) => (
+            <span key={p}
+              className="font-terminal px-3 py-1 text-[10px] tracking-widest uppercase text-white/60 border border-white/[0.25] rounded-sm"
+            >{p}</span>
+          ))}
+        </motion.div>
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {mode === "text" ? (
-                  <div className="relative">
-                    <textarea
-                      value={input}
-                      onChange={(e) => setInput(e.target.value)}
-                      placeholder="Paste your article here — minimum 50 characters..."
-                      rows={6}
-                      className="input-neon w-full rounded-xl p-4 text-sm leading-relaxed resize-none font-mono"
-                      required
-                    />
-                    <span className={`absolute bottom-3 right-3 text-xs font-mono ${
-                      input.length > MAX_CHARS ? "text-red-400" :
-                      input.length > MAX_CHARS * 0.85 ? "text-amber-400" : "text-slate-600"
-                    }`}>
-                      {input.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
-                    </span>
-                  </div>
-                ) : (
-                  <input
-                    type="url"
+        {/* Analysis card */}
+        <motion.div variants={STAGGER.item} className="w-full mb-8">
+          <div
+            ref={cardRef}
+            onMouseMove={handleMouseMove}
+            className="spotlight-card p-6"
+          >
+            {/* Mode toggle */}
+            <div className="flex bg-white/[0.03] rounded-sm p-0.5 mb-5 border border-white/[0.06]">
+              {[
+                { key: "text", label: "PASTE TEXT" },
+                { key: "url",  label: "ENTER URL"  },
+              ].map(({ key, label }) => (
+                <button key={key}
+                  onClick={() => { setMode(key); setInput("") }}
+                  className={`flex-1 py-2 rounded-sm text-[10px] font-terminal tracking-[0.2em] transition-all duration-200 ${
+                    mode === key
+                      ? "bg-white text-black font-bold"
+                      : "text-white/25 hover:text-white/60"
+                  }`}
+                >{label}</button>
+              ))}
+            </div>
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === "text" ? (
+                <div className="relative">
+                  <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="https://example.com/article"
-                    className="input-neon w-full rounded-xl p-4 text-sm font-mono"
+                    placeholder="> paste article content here..."
+                    rows={6}
+                    className="input-mono w-full rounded-sm p-4 text-[11px] leading-relaxed resize-none"
                     required
                   />
-                )}
-
-                {error && (
-                  <div className="flex items-start gap-2.5 text-red-400 text-sm bg-red-500/[0.08] border border-red-500/20 rounded-xl px-4 py-3">
-                    <span className="shrink-0 mt-px">⚠</span>
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <button
-                    type="submit"
-                    disabled={loading || !input.trim()}
-                    className="btn-neon flex-1 py-3 rounded-xl text-sm tracking-wider uppercase font-semibold"
-                  >
-                    {loading ? (
-                      <span className="flex items-center justify-center gap-2.5">
-                        <span className="flex gap-1">
-                          <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                          <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                          <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-cyan-400" />
-                        </span>
-                        Analyzing…
-                      </span>
-                    ) : (
-                      <span className="flex items-center justify-center gap-2">
-                        Analyze Article
-                        <span className="text-base">→</span>
-                      </span>
-                    )}
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => navigate("/history")}
-                    className="px-5 py-3 rounded-xl text-sm font-medium text-slate-400 hover:text-slate-200 bg-white/[0.04] border border-white/[0.08] hover:border-white/[0.15] transition-all duration-200 backdrop-blur-sm tracking-wide uppercase"
-                  >
-                    History
-                  </button>
+                  <span className={`absolute bottom-3 right-3 text-[10px] font-terminal ${
+                    input.length > MAX_CHARS ? "text-white/70" :
+                    input.length > MAX_CHARS * 0.85 ? "text-white/40" : "text-white/15"
+                  }`}>
+                    {input.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
+                  </span>
                 </div>
-              </form>
-            </div>
+              ) : (
+                <input
+                  type="url"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="> https://example.com/article"
+                  className="input-mono w-full rounded-sm p-4 text-[11px]"
+                  required
+                />
+              )}
+
+              {error && (
+                <div className="flex items-start gap-2.5 text-white/60 text-[11px] font-terminal bg-white/[0.03] border border-white/[0.1] rounded-sm px-4 py-3">
+                  <span className="shrink-0">! ERR</span>
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  type="submit"
+                  disabled={loading || !input.trim()}
+                  className="btn-primary flex-1 py-3 rounded-sm text-[11px] font-terminal tracking-[0.2em] uppercase"
+                >
+                  {loading ? (
+                    <span className="flex items-center justify-center gap-2.5">
+                      <span className="flex gap-1">
+                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-black" />
+                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-black" />
+                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-black" />
+                      </span>
+                      ANALYZING...
+                    </span>
+                  ) : "RUN ANALYSIS →"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/history")}
+                  className="btn-outline px-5 py-3 rounded-sm text-[10px] font-terminal tracking-[0.2em] uppercase"
+                >
+                  HISTORY
+                </button>
+              </div>
+            </form>
           </div>
         </motion.div>
 
         {/* Stats */}
-        <motion.div
-          variants={STAGGER.item}
-          className="grid grid-cols-3 gap-6 w-full"
-        >
-          {STATS.map(({ value, label }, i) => (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0, scale: 0.92 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 + i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-              className="flex flex-col items-center"
-            >
-              <span
-                className="text-3xl font-bold font-mono mb-1"
-                style={{
-                  background: "linear-gradient(135deg, #67e8f9, #c084fc)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {value}
-              </span>
-              <span className="text-xs text-slate-600 uppercase tracking-widest">{label}</span>
-            </motion.div>
+        <motion.div variants={STAGGER.item} className="grid grid-cols-3 gap-6 w-full border-t border-white/[0.06] pt-6">
+          {STATS.map(({ value, label }) => (
+            <div key={label} className="flex flex-col items-center">
+              <span className="text-2xl font-bold font-terminal text-white mb-1">{value}</span>
+              <span className="text-[9px] font-terminal text-white/55 uppercase tracking-[0.2em]">{label}</span>
+            </div>
           ))}
         </motion.div>
+
       </motion.div>
     </section>
   )

@@ -1,127 +1,50 @@
-/**
- * Futuristic SVG credibility gauge (0 = credible, 100 = suspicious).
- */
-export default function CredibilityGauge({ score }) {
-  const isCredible  = score < 40
-  const isUncertain = score >= 40 && score < 70
+import { motion } from "framer-motion"
 
-  const color = isCredible ? "#10b981" : isUncertain ? "#f59e0b" : "#ef4444"
-  const glowId = "gauge-glow"
+export default function CredibilityGauge({ score = 0 }) {
+  const pct    = Math.min(100, Math.max(0, score))
+  const radius = 54
+  const stroke = 5
+  const circ   = 2 * Math.PI * radius
+  const arc    = circ * 0.75
+  const offset = arc - (arc * pct / 100)
 
-  const CX = 100, CY = 100, R = 78
-  const arcLen = Math.PI * R  // half-circle arc length
-
-  // needle: -90deg (left) through top to +90deg (right)
-  const needleAngleDeg = -90 + (score / 100) * 180
-  const needleRad = ((needleAngleDeg - 90) * Math.PI) / 180
-  const needleX = CX + 60 * Math.cos(needleRad)
-  const needleY = CY + 60 * Math.sin(needleRad)
-
-  // tick marks at 0, 25, 50, 75, 100
-  const ticks = [0, 25, 50, 75, 100].map((s) => {
-    const rad = (((-90 + (s / 100) * 180) - 90) * Math.PI) / 180
-    return {
-      ox: CX + R * Math.cos(rad),
-      oy: CY + R * Math.sin(rad),
-      ix: CX + (R - 10) * Math.cos(rad),
-      iy: CY + (R - 10) * Math.sin(rad),
-    }
-  })
-
-  const label = isCredible ? "Credible" : isUncertain ? "Uncertain" : "Suspicious"
+  const label   = pct < 40 ? "CREDIBLE" : pct < 70 ? "UNCERTAIN" : "SUSPICIOUS"
+  const opacity = pct < 40 ? 1 : pct < 70 ? 0.55 : 0.3
 
   return (
-    <div className="flex flex-col items-center">
-      <svg viewBox="0 0 200 130" className="w-56">
-        <defs>
-          <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3.5" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <linearGradient id="arcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%"   stopColor="#10b981" />
-            <stop offset="50%"  stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#ef4444" />
-          </linearGradient>
-        </defs>
-
-        {/* Track background */}
-        <path
-          d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`}
-          fill="none"
-          stroke="rgba(255,255,255,0.05)"
-          strokeWidth="14"
-          strokeLinecap="round"
-        />
-
-        {/* Faint full-range gradient hint */}
-        <path
-          d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`}
-          fill="none"
-          stroke="url(#arcGrad)"
-          strokeWidth="14"
-          strokeLinecap="round"
-          opacity="0.1"
-        />
-
-        {/* Active arc */}
-        {score > 0 && (
-          <path
-            d={`M ${CX - R} ${CY} A ${R} ${R} 0 0 1 ${CX + R} ${CY}`}
+    <div className="flex flex-col items-center gap-4">
+      <div className="relative w-36 h-36">
+        <svg viewBox="0 0 120 120" className="w-full h-full -rotate-[135deg]">
+          {/* Track */}
+          <circle cx="60" cy="60" r={radius}
             fill="none"
-            stroke={color}
-            strokeWidth="14"
-            strokeLinecap="round"
-            strokeDasharray={`${(score / 100) * arcLen} ${arcLen}`}
-            filter={`url(#${glowId})`}
-            opacity="0.88"
-          />
-        )}
-
-        {/* Tick marks */}
-        {ticks.map((t, i) => (
-          <line
-            key={i}
-            x1={t.ox} y1={t.oy}
-            x2={t.ix} y2={t.iy}
-            stroke="rgba(255,255,255,0.18)"
-            strokeWidth="1.5"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth={stroke}
+            strokeDasharray={`${arc} ${circ}`}
             strokeLinecap="round"
           />
-        ))}
+          {/* Fill */}
+          <motion.circle cx="60" cy="60" r={radius}
+            fill="none"
+            stroke="white"
+            strokeWidth={stroke}
+            strokeDasharray={`${arc} ${circ}`}
+            strokeLinecap="round"
+            style={{ opacity }}
+            initial={{ strokeDashoffset: arc }}
+            animate={{ strokeDashoffset: offset }}
+            transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          />
+        </svg>
+        <div className="absolute inset-0 flex flex-col items-center justify-center">
+          <motion.span className="text-3xl font-bold font-terminal text-white"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
+          >{pct}</motion.span>
+          <span className="text-[9px] font-terminal text-white/20 tracking-widest">/100</span>
+        </div>
+      </div>
 
-        {/* Needle */}
-        <line
-          x1={CX} y1={CY}
-          x2={needleX} y2={needleY}
-          stroke={color}
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          filter={`url(#${glowId})`}
-          opacity="0.92"
-        />
-
-        {/* Hub */}
-        <circle cx={CX} cy={CY} r="8" fill="#07101f" stroke={color} strokeWidth="2" />
-        <circle cx={CX} cy={CY} r="3.5" fill={color} />
-
-        {/* Score */}
-        <text
-          x={CX} y={CY + 30}
-          textAnchor="middle"
-          fill="white"
-          fontSize="22"
-          fontWeight="700"
-          fontFamily="monospace"
-        >
-          {score}
-        </text>
-      </svg>
-
-      <span className="text-sm font-semibold mt-1 tracking-wide" style={{ color }}>
+      <span className="font-terminal text-[10px] tracking-[0.25em] uppercase px-4 py-1.5 border border-white/15 rounded-sm text-white/50">
         {label}
       </span>
     </div>

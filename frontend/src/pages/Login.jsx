@@ -1,12 +1,13 @@
 import { useState } from "react"
 import { useNavigate, Link } from "react-router-dom"
+import { motion } from "framer-motion"
 import { login, register } from "../services/api"
 
 export default function Login() {
-  const [mode, setMode] = useState("login")
-  const [email, setEmail] = useState("")
+  const [mode, setMode]         = useState("login")
+  const [email, setEmail]       = useState("")
   const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
+  const [error, setError]       = useState("")
   const navigate = useNavigate()
 
   async function handleSubmit(e) {
@@ -19,95 +20,95 @@ export default function Login() {
       localStorage.setItem("token", res.data.token)
       navigate("/")
     } catch (err) {
-      setError(err.response?.data?.error || "Something went wrong.")
+      setError(err.response?.data?.error || "Authentication failed.")
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      {/* Ambient glow */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full bg-cyan-500/[0.04] blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[300px] rounded-full bg-purple-500/[0.04] blur-3xl" />
-      </div>
-
-      <div className="relative w-full max-w-sm animate-slide-up">
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="relative w-full max-w-sm"
+      >
         {/* Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-purple-500/20 border border-cyan-500/25 flex items-center justify-center">
-              <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-glow-pulse" />
+          <div className="inline-flex items-center gap-2 mb-4">
+            <div className="w-5 h-5 border border-white/30 rounded-sm flex items-center justify-center">
+              <div className="w-1.5 h-1.5 bg-white rounded-full" />
             </div>
-            <span className="text-xl font-bold gradient-text">TruthLens</span>
+            <span className="font-terminal text-sm tracking-[0.2em] uppercase text-white">TruthLens</span>
           </div>
-          <p className="text-slate-600 text-sm">
-            {mode === "login" ? "Sign in to your account" : "Create a new account"}
+          <p className="font-terminal text-[10px] text-white/20 tracking-[0.2em] uppercase">
+            {mode === "login" ? "> AUTHENTICATE TO CONTINUE" : "> CREATE NEW IDENTITY"}
           </p>
         </div>
 
-        <div className="glass-card p-6 glow-cyan">
+        <div className="spotlight-card p-6 border-beam">
           {/* Mode toggle */}
-          <div className="flex bg-black/30 rounded-xl p-1 mb-6 border border-white/[0.05]">
+          <div className="flex bg-white/[0.03] rounded-sm p-0.5 mb-6 border border-white/[0.06]">
             {["login", "register"].map((m) => (
-              <button
-                key={m}
+              <button key={m}
                 onClick={() => { setMode(m); setError("") }}
-                className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-                  mode === m
-                    ? "bg-cyan-500/[0.12] text-cyan-400 border border-cyan-500/20"
-                    : "text-slate-500 hover:text-slate-300"
+                className={`flex-1 py-2 rounded-sm text-[10px] font-terminal tracking-[0.2em] uppercase transition-all duration-200 ${
+                  mode === m ? "bg-white text-black font-bold" : "text-white/25 hover:text-white/60"
                 }`}
               >
-                {m === "login" ? "Sign In" : "Register"}
+                {m === "login" ? "SIGN IN" : "REGISTER"}
               </button>
             ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="space-y-1">
-              <label className="text-xs text-slate-600 uppercase tracking-wider">Email</label>
+            <div className="space-y-1.5">
+              <label className="font-terminal text-[9px] text-white/20 uppercase tracking-[0.2em]">
+                // EMAIL
+              </label>
               <input
                 type="email"
-                placeholder="you@example.com"
+                placeholder="> user@domain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-neon w-full rounded-xl p-3.5 text-sm"
+                className="input-mono w-full rounded-sm p-3.5 text-[11px]"
                 required
               />
             </div>
-            <div className="space-y-1">
-              <label className="text-xs text-slate-600 uppercase tracking-wider">Password</label>
+            <div className="space-y-1.5">
+              <label className="font-terminal text-[9px] text-white/20 uppercase tracking-[0.2em]">
+                // PASSWORD
+              </label>
               <input
                 type="password"
-                placeholder="••••••••"
+                placeholder="> ••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-neon w-full rounded-xl p-3.5 text-sm"
+                className="input-mono w-full rounded-sm p-3.5 text-[11px]"
                 required
               />
             </div>
 
             {error && (
-              <div className="flex items-start gap-2.5 text-red-400 text-sm bg-red-500/[0.08] border border-red-500/20 rounded-xl px-4 py-3">
-                <span className="mt-px shrink-0">⚠</span>
-                <span>{error}</span>
+              <div className="font-terminal text-[10px] text-white/50 bg-white/[0.03] border border-white/[0.1] rounded-sm px-4 py-3">
+                ! ERR :: {error}
               </div>
             )}
 
-            <button type="submit" className="btn-neon w-full py-3 rounded-xl text-sm mt-2">
-              {mode === "login" ? "Sign In →" : "Create Account →"}
+            <button type="submit"
+              className="btn-primary w-full py-3 rounded-sm text-[11px] font-terminal tracking-[0.2em] uppercase mt-2"
+            >
+              {mode === "login" ? "AUTHENTICATE →" : "CREATE ACCOUNT →"}
             </button>
           </form>
         </div>
 
-        {/* Footer note */}
-        <p className="text-center text-slate-700 text-xs mt-5">
-          Analysis is available without an account.{" "}
-          <Link to="/" className="text-cyan-600 hover:text-cyan-400 transition-colors">
-            Continue as guest
+        <p className="text-center font-terminal text-[10px] text-white/15 mt-5 tracking-widest">
+          NO ACCOUNT REQUIRED //{" "}
+          <Link to="/" className="text-white/35 hover:text-white/70 transition-colors underline underline-offset-4">
+            CONTINUE AS GUEST
           </Link>
         </p>
-      </div>
+      </motion.div>
     </div>
   )
 }

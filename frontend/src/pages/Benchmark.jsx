@@ -2,48 +2,46 @@ import { useEffect, useState } from "react"
 import { useParams, Link } from "react-router-dom"
 import { getAnalysis, getBenchmark } from "../services/api"
 import { motion } from "framer-motion"
-import CredibilityGauge from "../components/charts/CredibilityGauge"
 
 const TOOLS = [
   {
     key: "truthlens",
-    name: "TruthLens",
-    color: "#06b6d4",
+    name: "TRUTHLENS",
     description: "Fine-tuned RoBERTa on LIAR dataset. Sentence-level scoring with LIME explainability.",
-    strengths: ["Sentence-level granularity", "Explainable AI", "Multi-dimensional scoring"],
+    strengths: ["Sentence-level granularity", "Explainable AI (LIME)", "Multi-dimensional scoring"],
   },
   {
     key: "claimbuster",
-    name: "ClaimBuster",
-    color: "#a855f7",
-    description: "SVM-based claim detection model trained on political statements. Document-level scoring.",
+    name: "CLAIMBUSTER",
+    description: "SVM-based claim detection trained on political statements. Document-level scoring.",
     strengths: ["Fast inference", "Political claim focus", "Public API"],
   },
   {
     key: "google",
-    name: "Google Fact Check",
-    color: "#f59e0b",
+    name: "GOOGLE FACT CHECK",
     description: "Knowledge graph lookup against verified fact-check databases. Returns matched claims.",
     strengths: ["Broad database", "Source attribution", "Claim matching"],
   },
 ]
 
-function ScoreBar({ score, color, animate }) {
+function ScoreBar({ score, delay = 0 }) {
   const pct = Math.min(100, Math.max(0, score ?? 0))
-  const label = pct < 40 ? "Credible" : pct < 70 ? "Uncertain" : "Suspicious"
+  const op  = pct < 40 ? 1 : pct < 70 ? 0.5 : 0.25
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <span className="text-xs text-slate-500 uppercase tracking-widest">{label}</span>
-        <span className="text-2xl font-bold font-mono" style={{ color }}>{pct}</span>
+        <span className="font-terminal text-[9px] text-white/20 tracking-widest uppercase">
+          {pct < 40 ? "CREDIBLE" : pct < 70 ? "UNCERTAIN" : "SUSPICIOUS"}
+        </span>
+        <span className="font-terminal text-2xl font-bold" style={{ color: `rgba(255,255,255,${op})` }}>{pct}</span>
       </div>
-      <div className="h-2 bg-white/[0.05] rounded-full overflow-hidden">
+      <div className="h-px bg-white/[0.06] rounded-full overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: pct + "%" }}
-          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: animate ? 0.2 : 0 }}
+          transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay }}
           className="h-full rounded-full"
-          style={{ background: color, boxShadow: "0 0 12px " + color + "60" }}
+          style={{ background: `rgba(255,255,255,${op})` }}
         />
       </div>
     </div>
@@ -69,23 +67,20 @@ export default function Benchmark() {
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center">
-      <div className="flex flex-col items-center gap-5">
-        <div className="flex gap-1.5">
-          <span className="dot-bounce w-2 h-2 rounded-full bg-cyan-400" />
-          <span className="dot-bounce w-2 h-2 rounded-full bg-cyan-400" />
-          <span className="dot-bounce w-2 h-2 rounded-full bg-cyan-400" />
-        </div>
-        <p className="text-slate-600 text-sm">Loading benchmark...</p>
+      <div className="flex gap-1.5">
+        <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
+        <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
+        <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
       </div>
     </div>
   )
 
   if (error) return (
     <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="glass-card p-10 text-center max-w-sm w-full">
-        <p className="text-red-400 mb-5">{error}</p>
-        <Link to={"/results/" + id} className="btn-neon inline-flex items-center gap-2 px-5 py-2 rounded-xl text-sm">
-          Back to Results
+      <div className="spotlight-card p-10 text-center max-w-sm w-full">
+        <p className="font-terminal text-xs text-white/40 mb-6">! ERR :: {error}</p>
+        <Link to={"/results/" + id} className="btn-outline px-5 py-2 rounded-sm font-terminal text-[10px] tracking-[0.2em] uppercase inline-flex items-center gap-2">
+          ← BACK TO RESULTS
         </Link>
       </div>
     </div>
@@ -94,67 +89,68 @@ export default function Benchmark() {
   const tl = analysis?.overall_score ?? 0
   const cb = benchmark?.claimbuster_score ?? tl + 8
   const gf = benchmark?.google_score     ?? tl - 5
-
   const scores = { truthlens: tl, claimbuster: cb, google: gf }
   const winner = Object.entries(scores).sort((a, b) => a[1] - b[1])[0][0]
 
   return (
     <div className="min-h-screen">
-      <div className="max-w-5xl mx-auto px-4 py-12 space-y-6 animate-slide-up">
-
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        className="max-w-5xl mx-auto px-4 py-10 space-y-4"
+      >
+        {/* Top bar */}
         <div className="flex items-center justify-between">
-          <Link to={"/results/" + id} className="flex items-center gap-2 text-sm text-slate-600 hover:text-cyan-400 transition-colors group">
-            <span className="group-hover:-translate-x-0.5 transition-transform inline-block">back</span>
-            Back to Results
+          <Link to={"/results/" + id}
+            className="font-terminal text-[10px] text-white/25 hover:text-white/60 transition-colors tracking-widest uppercase"
+          >
+            ← RESULTS
           </Link>
-          <span className="text-xs text-slate-700 font-mono">benchmark / {id}</span>
+          <span className="font-terminal text-[9px] text-white/15 tracking-widest">BENCHMARK // #{id}</span>
         </div>
 
-        <div className="glass-card p-6">
-          <div className="flex items-start justify-between">
-            <div>
-              <h2 className="text-xl font-bold gradient-text mb-1">Benchmark Comparison</h2>
-              <p className="text-sm text-slate-500">TruthLens vs ClaimBuster vs Google Fact Check</p>
-            </div>
-            <span className="text-xs bg-amber-500/10 border border-amber-500/20 text-amber-500 px-3 py-1 rounded-full">
-              Stub data, Week 7 feature
-            </span>
+        {/* Header */}
+        <div className="spotlight-card p-5 flex items-center justify-between border-beam">
+          <div>
+            <h2 className="font-terminal text-sm font-bold text-white tracking-widest mb-0.5">
+              BENCHMARK COMPARISON
+            </h2>
+            <p className="font-terminal text-[9px] text-white/20 tracking-[0.2em] uppercase">
+              TruthLens vs ClaimBuster vs Google Fact Check
+            </p>
           </div>
+          <span className="font-terminal text-[9px] text-white/20 border border-white/10 px-3 py-1 rounded-sm tracking-widest">
+            STUB DATA
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        {/* Tool cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {TOOLS.map((tool, i) => {
-            const score = scores[tool.key]
             const isWinner = tool.key === winner
             return (
-              <motion.div
-                key={tool.key}
-                initial={{ opacity: 0, y: 20 }}
+              <motion.div key={tool.key}
+                initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: i * 0.1 }}
-                className={"glass-card p-6 flex flex-col gap-4 " + (isWinner ? "ring-1 ring-cyan-500/30" : "")}
+                transition={{ duration: 0.4, delay: i * 0.08 }}
+                className={`spotlight-card p-5 flex flex-col gap-4 ${isWinner ? "border-white/20" : ""}`}
               >
                 {isWinner && (
-                  <div className="flex justify-end">
-                    <span className="text-xs text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 px-2 py-0.5 rounded-full">Most credible</span>
-                  </div>
+                  <span className="font-terminal text-[9px] text-white/50 border border-white/15 px-2 py-0.5 rounded-sm tracking-widest self-end">
+                    MOST CREDIBLE
+                  </span>
                 )}
-
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: tool.color }} />
-                    <h3 className="text-base font-semibold text-slate-200">{tool.name}</h3>
-                  </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">{tool.description}</p>
+                  <h3 className="font-terminal text-xs font-bold text-white tracking-widest mb-2">{tool.name}</h3>
+                  <p className="font-terminal text-[10px] text-white/25 leading-relaxed">{tool.description}</p>
                 </div>
-
-                <ScoreBar score={score} color={tool.color} animate />
-
-                <div className="space-y-1.5 pt-2 border-t border-white/[0.05]">
-                  <p className="text-xs text-slate-600 uppercase tracking-widest mb-2">Strengths</p>
+                <ScoreBar score={scores[tool.key]} delay={0.2 + i * 0.1} />
+                <div className="space-y-1.5 pt-3 border-t border-white/[0.05]">
+                  <p className="font-terminal text-[9px] text-white/15 tracking-widest uppercase mb-2">STRENGTHS</p>
                   {tool.strengths.map((s) => (
-                    <div key={s} className="flex items-center gap-2 text-xs text-slate-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-slate-600" />
+                    <div key={s} className="flex items-center gap-2 font-terminal text-[10px] text-white/30">
+                      <span className="w-1 h-1 bg-white/20 rounded-sm shrink-0" />
                       {s}
                     </div>
                   ))}
@@ -164,48 +160,59 @@ export default function Benchmark() {
           })}
         </div>
 
-        <div className="glass-card p-6">
-          <p className="text-xs text-slate-600 uppercase tracking-widest mb-6 font-medium">Score Comparison</p>
+        {/* Score comparison bar chart */}
+        <div className="spotlight-card p-6">
+          <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase mb-6">
+            // SCORE COMPARISON
+          </p>
           <div className="space-y-5">
             {TOOLS.map((tool) => {
               const pct = Math.min(100, Math.max(0, scores[tool.key]))
+              const op  = pct < 40 ? 1 : pct < 70 ? 0.5 : 0.25
               return (
                 <div key={tool.key} className="flex items-center gap-4">
-                  <span className="text-sm text-slate-400 w-36 shrink-0">{tool.name}</span>
-                  <div className="flex-1 h-2 bg-white/[0.05] rounded-full overflow-hidden">
+                  <span className="font-terminal text-[10px] text-white/30 w-36 shrink-0 tracking-widest">{tool.name}</span>
+                  <div className="flex-1 h-px bg-white/[0.06] rounded-full overflow-hidden">
                     <motion.div
                       initial={{ width: 0 }}
                       animate={{ width: pct + "%" }}
                       transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                      className="h-full rounded-full"
-                      style={{ background: tool.color, boxShadow: "0 0 10px " + tool.color + "60" }}
+                      className="h-full"
+                      style={{ background: `rgba(255,255,255,${op})` }}
                     />
                   </div>
-                  <span className="text-sm font-bold font-mono w-8 text-right" style={{ color: tool.color }}>{pct}</span>
+                  <span className="font-terminal text-sm font-bold w-8 text-right"
+                    style={{ color: `rgba(255,255,255,${op})` }}
+                  >{pct}</span>
                 </div>
               )
             })}
           </div>
         </div>
 
-        <div className="glass-card p-6">
-          <p className="text-xs text-slate-600 uppercase tracking-widest mb-5 font-medium">TruthLens Advantage</p>
+        {/* TruthLens advantage */}
+        <div className="spotlight-card p-6">
+          <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase mb-5">
+            // TRUTHLENS ADVANTAGE
+          </p>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
-              { metric: "Granularity",   value: "Sentence", sub: "vs document-level" },
-              { metric: "Explainability", value: "LIME",     sub: "vs black-box" },
-              { metric: "Dimensions",    value: "4-axis",   sub: "vs single score" },
+              { metric: "GRANULARITY",    value: "SENTENCE", sub: "vs document-level" },
+              { metric: "EXPLAINABILITY", value: "LIME",     sub: "vs black-box"       },
+              { metric: "DIMENSIONS",     value: "4-AXIS",   sub: "vs single score"    },
             ].map(({ metric, value, sub }) => (
-              <div key={metric} className="text-center p-4 bg-black/20 rounded-xl border border-cyan-500/10">
-                <p className="text-xs text-slate-600 uppercase tracking-widest mb-1">{metric}</p>
-                <p className="text-lg font-bold gradient-text">{value}</p>
-                <p className="text-xs text-slate-600 mt-0.5">{sub}</p>
+              <div key={metric}
+                className="text-center p-5 bg-white/[0.02] border border-white/[0.06] rounded-sm"
+              >
+                <p className="font-terminal text-[9px] text-white/20 tracking-widest uppercase mb-2">{metric}</p>
+                <p className="font-terminal text-base font-bold text-white mb-1">{value}</p>
+                <p className="font-terminal text-[9px] text-white/20 tracking-widest">{sub}</p>
               </div>
             ))}
           </div>
         </div>
 
-      </div>
+      </motion.div>
     </div>
   )
 }
