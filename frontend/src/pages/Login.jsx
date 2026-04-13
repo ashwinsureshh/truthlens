@@ -34,10 +34,18 @@ export default function Login() {
       >
         {/* Branding */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 mb-4">
-            <div className="w-5 h-5 border border-white/30 rounded-sm flex items-center justify-center">
-              <div className="w-1.5 h-1.5 bg-white rounded-full" />
-            </div>
+          <div className="inline-flex flex-col items-center gap-3 mb-4">
+            {/* Logo icon */}
+            <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-12 h-12">
+              <circle cx="20" cy="20" r="20" fill="white" />
+              <circle cx="20" cy="20" r="19" fill="black" />
+              <path d="M14.5 14.5 A8 8 0 0 0 14.5 25.5"  stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+              <path d="M11.5 11.5 A12 12 0 0 0 11.5 28.5" stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+              <path d="M8.5 8.5  A16 16 0 0 0 8.5 31.5"  stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+              <path d="M16 20 C18 15.5 26 15.5 30 20 C26 24.5 18 24.5 16 20 Z" fill="white" />
+              <circle cx="25" cy="20" r="3.2" fill="black" />
+              <circle cx="26" cy="18.8" r="1.1" fill="white" />
+            </svg>
             <span className="font-terminal text-sm tracking-[0.2em] uppercase text-white">TruthLens</span>
           </div>
           <p className="font-terminal text-[10px] text-white/20 tracking-[0.2em] uppercase">

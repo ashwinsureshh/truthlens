@@ -21,9 +21,7 @@ export default function Navbar() {
       <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2.5 group">
-          <div className="w-6 h-6 border border-white/30 rounded-sm flex items-center justify-center group-hover:border-white/70 transition-all duration-300">
-            <div className="w-1.5 h-1.5 bg-white rounded-full" />
-          </div>
+          <TruthLensIcon className="w-8 h-8 opacity-90 group-hover:opacity-100 transition-opacity duration-300" />
           <span className="text-sm font-bold tracking-[0.15em] uppercase font-terminal text-white">
             Truth<span className="text-white/40">Lens</span>
           </span>
@@ -51,6 +49,30 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+  )
+}
+
+function TruthLensIcon({ className = "" }) {
+  return (
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className={className}>
+      {/* Black circle */}
+      <circle cx="20" cy="20" r="20" fill="white" />
+      <circle cx="20" cy="20" r="19" fill="black" />
+
+      {/* Signal / WiFi arcs on the left — radiating outward from the eye tip */}
+      <path d="M14.5 14.5 A8 8 0 0 0 14.5 25.5"  stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      <path d="M11.5 11.5 A12 12 0 0 0 11.5 28.5" stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+      <path d="M8.5 8.5  A16 16 0 0 0 8.5 31.5"  stroke="white" strokeWidth="1.6" strokeLinecap="round" fill="none" />
+
+      {/* Eye / lens shape — pointed left & right */}
+      <path
+        d="M16 20 C18 15.5 26 15.5 30 20 C26 24.5 18 24.5 16 20 Z"
+        fill="white"
+      />
+      {/* Pupil — white crescent giving depth */}
+      <circle cx="25" cy="20" r="3.2" fill="black" />
+      <circle cx="26" cy="18.8" r="1.1" fill="white" />
+    </svg>
   )
 }
 
