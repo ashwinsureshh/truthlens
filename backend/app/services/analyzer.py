@@ -124,7 +124,14 @@ def _finetuned_score(sentence: str) -> float:
     if label == "suspicious":
         return round(confidence * 100, 1)
     else:
-        return round((1 - confidence) * 100, 1)
+        # The model's credible confidence tops out at ~0.73-0.75 in practice,
+        # meaning the raw formula (1 - confidence) * 100 never goes below ~25.
+        # Remap the observed credible range [0.5, 0.75] → suspicion score [50, 0]
+        # so truly credible sentences get scores near 0, not stuck at 27.
+        CREDIBLE_MAX = 0.75
+        if confidence >= CREDIBLE_MAX:
+            return 0.0
+        return round((CREDIBLE_MAX - confidence) / (CREDIBLE_MAX - 0.5) * 50, 1)
 
 
 def _nli_scores(text: str) -> dict:
