@@ -14,14 +14,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app
 COPY . .
 
-# Expose port
-EXPOSE 5000
+# Expose port (Render injects $PORT at runtime)
+EXPOSE 10000
 
-# Run with gunicorn — long timeout for model inference + LIME
-CMD ["gunicorn", \
-     "--workers", "1", \
-     "--threads", "4", \
-     "--timeout", "300", \
-     "--bind", "0.0.0.0:5000", \
-     "--access-logfile", "-", \
-     "run:app"]
+# Run with gunicorn — uses $PORT env var for Render compatibility
+CMD gunicorn \
+    --workers 1 \
+    --threads 4 \
+    --timeout 300 \
+    --bind 0.0.0.0:${PORT:-5000} \
+    --access-logfile - \
+    run:app
