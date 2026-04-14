@@ -58,7 +58,7 @@ export default function Results() {
   )
 
   const { overall_score, scores, sentence_results } = data
-  const label   = overall_score < 40 ? "CREDIBLE" : overall_score < 70 ? "UNCERTAIN" : "SUSPICIOUS"
+  const label   = overall_score < 30 ? "CREDIBLE" : overall_score < 55 ? "UNCERTAIN" : "SUSPICIOUS"
 
   return (
     <div className="min-h-screen">
