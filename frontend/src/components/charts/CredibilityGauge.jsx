@@ -9,9 +9,9 @@ export default function CredibilityGauge({ score = 0 }) {
   const arc    = circ * 0.75
   const offset = arc - (arc * pct / 100)
 
-  const color      = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
-  const label      = pct < 30 ? "Credible" : pct < 55 ? "Uncertain" : "Suspicious"
-  const badgeClass = pct < 30 ? "badge-credible" : pct < 55 ? "badge-uncertain" : "badge-suspicious"
+  const color      = pct < 45 ? "#10b981" : pct < 62 ? "#f59e0b" : "#ef4444"
+  const label      = pct < 45 ? "Credible" : pct < 62 ? "Uncertain" : "Suspicious"
+  const badgeClass = pct < 45 ? "badge-credible" : pct < 62 ? "badge-uncertain" : "badge-suspicious"
 
   // Animated score counter
   const [displayScore, setDisplayScore] = useState(0)
@@ -115,15 +115,15 @@ export default function CredibilityGauge({ score = 0 }) {
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#10b981" }} />
-                <span><strong>0–29:</strong> Credible — High factual accuracy, low bias</span>
+                <span><strong>0–44:</strong> Credible — High factual accuracy, low bias</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#f59e0b" }} />
-                <span><strong>30–54:</strong> Uncertain — Mixed signals, verify sources</span>
+                <span><strong>45–61:</strong> Uncertain — Mixed signals, verify sources</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full shrink-0" style={{ background: "#ef4444" }} />
-                <span><strong>55–100:</strong> Suspicious — Possible misinformation detected</span>
+                <span><strong>62–100:</strong> Suspicious — Possible misinformation detected</span>
               </div>
             </div>
             {/* Arrow */}

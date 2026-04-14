@@ -26,8 +26,8 @@ const TOOLS = [
 
 function ScoreBar({ score, delay = 0 }) {
   const pct   = Math.min(100, Math.max(0, score ?? 0))
-  const color = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
-  const label = pct < 30 ? "Credible" : pct < 55 ? "Uncertain" : "Suspicious"
+  const color = pct < 45 ? "#10b981" : pct < 62 ? "#f59e0b" : "#ef4444"
+  const label = pct < 45 ? "Credible" : pct < 62 ? "Uncertain" : "Suspicious"
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
@@ -189,7 +189,7 @@ export default function Benchmark() {
           <div className="space-y-5">
             {TOOLS.map((tool) => {
               const pct   = Math.min(100, Math.max(0, scores[tool.key]))
-              const color = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
+              const color = pct < 45 ? "#10b981" : pct < 62 ? "#f59e0b" : "#ef4444"
               return (
                 <div key={tool.key} className="flex items-center gap-4">
                   <span className="text-sm font-medium w-36 shrink-0" style={{ color: "var(--text-2)" }}>

@@ -57,8 +57,8 @@ export default function Results() {
 
   const { overall_score, scores, sentence_results } = data
   const score = overall_score
-  const label = score < 30 ? "Credible" : score < 55 ? "Uncertain" : "Suspicious"
-  const badgeClass = score < 30 ? "badge-credible" : score < 55 ? "badge-uncertain" : "badge-suspicious"
+  const label = score < 45 ? "Credible" : score < 62 ? "Uncertain" : "Suspicious"
+  const badgeClass = score < 45 ? "badge-credible" : score < 62 ? "badge-uncertain" : "badge-suspicious"
 
   return (
     <div className="min-h-screen print:shadow-none" style={{ background: "var(--bg)" }}>
@@ -165,7 +165,7 @@ export default function Results() {
             <RadarChart scores={scores} />
             <div className="grid grid-cols-2 gap-2 mt-4">
               {Object.entries(scores ?? {}).map(([key, val]) => {
-                const scoreColor = val < 30 ? "#10b981" : val < 55 ? "#f59e0b" : "#ef4444"
+                const scoreColor = val < 45 ? "#10b981" : val < 62 ? "#f59e0b" : "#ef4444"
                 return (
                   <div
                     key={key}
@@ -289,7 +289,7 @@ function BenchmarkPreview({ score, id }) {
       </div>
       {tools.map((t) => {
         const pct = Math.min(100, Math.max(0, t.score))
-        const color = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
+        const color = pct < 45 ? "#10b981" : pct < 62 ? "#f59e0b" : "#ef4444"
         return (
           <div
             key={t.name}

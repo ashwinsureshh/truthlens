@@ -24,8 +24,8 @@ export default function SentenceHeatmap({ sentences }) {
       <p className="text-sm leading-8" style={{ color: "var(--text-2)" }}>
         {sentences.map((s, i) => {
           const pct = s.score ?? 0
-          const isCredible   = pct < 30
-          const isUncertain  = pct >= 30 && pct < 55
+          const isCredible   = pct < 45
+          const isUncertain  = pct >= 45 && pct < 62
           // isSuspicious is >= 55
 
           const bg = isCredible

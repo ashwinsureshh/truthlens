@@ -18,7 +18,7 @@ export default function History() {
 
   const filtered = analyses.filter((a) => {
     const pct = a.overall_score ?? 0
-    const verdict = pct < 30 ? "credible" : pct < 55 ? "uncertain" : "suspicious"
+    const verdict = pct < 45 ? "credible" : pct < 62 ? "uncertain" : "suspicious"
     const matchesFilter = filter === "all" || verdict === filter
     const searchText = (a.source_url || "Text input").toLowerCase()
     const matchesSearch = !search || searchText.includes(search.toLowerCase())
@@ -137,9 +137,9 @@ export default function History() {
             <div className="space-y-2">
               {filtered.map((a, i) => {
                 const pct     = a.overall_score ?? 0
-                const color   = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
-                const badge   = pct < 30 ? "badge-credible" : pct < 55 ? "badge-uncertain" : "badge-suspicious"
-                const verdict = pct < 30 ? "Credible" : pct < 55 ? "Uncertain" : "Suspicious"
+                const color   = pct < 45 ? "#10b981" : pct < 62 ? "#f59e0b" : "#ef4444"
+                const badge   = pct < 45 ? "badge-credible" : pct < 62 ? "badge-uncertain" : "badge-suspicious"
+                const verdict = pct < 45 ? "Credible" : pct < 62 ? "Uncertain" : "Suspicious"
 
                 return (
                   <motion.div

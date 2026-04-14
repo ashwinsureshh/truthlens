@@ -26,9 +26,9 @@ export default function SentenceHighlights({ sentences }) {
 
       {sentences.map((s, i) => {
         const pct         = s.score ?? 0
-        const borderColor = pct < 30 ? '#10b981' : pct < 55 ? '#f59e0b' : '#ef4444'
-        const scoreColor  = pct < 30 ? '#10b981' : pct < 55 ? '#f59e0b' : '#ef4444'
-        const bgAlpha     = pct < 30 ? 0.04 : pct < 55 ? 0.03 : 0.02
+        const borderColor = pct < 45 ? '#10b981' : pct < 62 ? '#f59e0b' : '#ef4444'
+        const scoreColor  = pct < 45 ? '#10b981' : pct < 62 ? '#f59e0b' : '#ef4444'
+        const bgAlpha     = pct < 45 ? 0.04 : pct < 62 ? 0.03 : 0.02
 
         return (
           <div

@@ -328,8 +328,8 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
 
 
 def _score_to_label(score: float) -> str:
-    if score < 30:
+    if score < 45:
         return "credible"
-    elif score < 55:
+    elif score < 62:
         return "uncertain"
     return "suspicious"
