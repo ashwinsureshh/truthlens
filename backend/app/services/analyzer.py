@@ -39,7 +39,7 @@ _explanation_cache: dict[str, str] = {}
 _url_cache: dict[str, tuple[float, dict]] = {}
 URL_CACHE_TTL = 3600  # 1 hour
 
-MODEL_PATH = os.environ.get("MODEL_PATH", "../model/checkpoints/roberta-truthlens")
+MODEL_PATH = os.environ.get("MODEL_PATH", "venooma/roberta-truthlens")
 NLI_MODEL  = "cross-encoder/nli-MiniLM2-L6-H768"
 
 CANDIDATE_LABELS = [
@@ -54,8 +54,13 @@ CANDIDATE_LABELS = [
 # ── Model loaders ─────────────────────────────────────────────────────────────
 
 def _is_finetuned_available() -> bool:
-    config_path = os.path.join(MODEL_PATH, "config.json")
-    return os.path.isfile(config_path)
+    # Local checkpoint
+    if os.path.isfile(os.path.join(MODEL_PATH, "config.json")):
+        return True
+    # HuggingFace Hub model ID (contains a slash or no path separators)
+    if "/" in MODEL_PATH and not os.path.sep in MODEL_PATH:
+        return True
+    return False
 
 
 def _get_device():

@@ -14,9 +14,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app
 COPY . .
 
-# Pre-download the MiniLM model during build so it's ready at startup
-# (avoids download timeout on first request)
-RUN python -c "from transformers import pipeline; pipeline('zero-shot-classification', model='cross-encoder/nli-MiniLM2-L6-H768')"
+# Pre-download models during build so they're ready at startup
+RUN python -c "\
+from transformers import pipeline; \
+print('Downloading MiniLM...'); \
+pipeline('zero-shot-classification', model='cross-encoder/nli-MiniLM2-L6-H768'); \
+print('Downloading fine-tuned RoBERTa...'); \
+pipeline('text-classification', model='venooma/roberta-truthlens'); \
+print('All models downloaded.')"
 
 # Expose port (Render injects $PORT at runtime)
 EXPOSE 10000
