@@ -4,10 +4,10 @@ import { getAnalysis } from "../services/api"
 import { motion, AnimatePresence } from "framer-motion"
 import RadarChart from "../components/charts/RadarChart"
 import CredibilityGauge from "../components/charts/CredibilityGauge"
-import SentenceHighlights from "../components/ui/SentenceHighlights"
-import SentenceHeatmap from "../components/ui/SentenceHeatmap"
+import AnnotatedArticle from "../components/ui/AnnotatedArticle"
+import TrustWaveform from "../components/charts/TrustWaveform"
 
-const TABS = ["Overview", "Heatmap", "Benchmark"]
+const TABS = ["Overview", "Waveform", "Benchmark"]
 
 export default function Results() {
   const { id } = useParams()
@@ -300,21 +300,15 @@ export default function Results() {
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <p className="text-xs font-medium mb-5" style={{ color: "var(--text-3)" }}>
-                    Sentence Analysis
-                  </p>
-                  <SentenceHighlights sentences={sentence_results} />
+                  <AnnotatedArticle sentences={sentence_results} />
                 </motion.div>
               )}
-              {tab === "Heatmap" && (
-                <motion.div key="hm"
+              {tab === "Waveform" && (
+                <motion.div key="wf"
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <p className="text-xs font-medium mb-5" style={{ color: "var(--text-3)" }}>
-                    Intensity Heatmap
-                  </p>
-                  <SentenceHeatmap sentences={sentence_results} />
+                  <TrustWaveform sentences={sentence_results} />
                 </motion.div>
               )}
               {tab === "Benchmark" && (
