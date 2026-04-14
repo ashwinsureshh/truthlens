@@ -61,7 +61,11 @@ def get_device():
 def load_liar():
     """LIAR dataset: 12K political statements, 6 classes → binary."""
     print("  Loading LIAR dataset...")
-    ds = load_dataset("liar", trust_remote_code=True)
+    try:
+        ds = load_dataset("liar", trust_remote_code=True)
+    except Exception as e:
+        print(f"  LIAR dataset unavailable ({e}) - skipping.")
+        return None
 
     # 6-class label mapping
     # pants-fire=0, false=1, barely-true=2 → suspicious (1)
@@ -116,17 +120,24 @@ def build_dataset():
     liar    = load_liar()
     fakenews = load_fakenews()
 
-    if fakenews:
+    if liar and fakenews:
         train = concatenate_datasets([liar["train"], fakenews["train"]]).shuffle(seed=SEED)
         val   = concatenate_datasets([
             liar["validation"],
             fakenews.get("validation", liar["validation"].select(range(0)))
         ]).shuffle(seed=SEED)
         test  = liar["test"]   # keep LIAR test for clean eval
-    else:
+    elif fakenews:
+        print("  Using fake_news only (LIAR unavailable)")
+        train = fakenews["train"].shuffle(seed=SEED)
+        val = fakenews.get("validation", fakenews["train"].select(range(500)))
+        test = fakenews.get("test", fakenews["train"].select(range(500, 1000)))
+    elif liar:
         train = liar["train"].shuffle(seed=SEED)
-        val   = liar["validation"]
-        test  = liar["test"]
+        val = liar["validation"]
+        test = liar["test"]
+    else:
+        raise RuntimeError("No datasets could be loaded!")
 
     print(f"\n📊 Final dataset: {len(train)} train / {len(val)} val / {len(test)} test")
 
