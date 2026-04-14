@@ -2,15 +2,16 @@
 TruthLens Analyzer
 ------------------
 Strategy (in priority order):
-  1. Fine-tuned RoBERTa (checkpoints/roberta-truthlens) — fastest, most accurate
-  2. Zero-shot BART (facebook/bart-large-mnli)           — fallback when fine-tuned model unavailable
+  1. Fine-tuned RoBERTa (checkpoints/roberta-truthlens) — main credibility score
+  2. MiniLM NLI (cross-encoder/nli-MiniLM2-L6-H768)    — dimension scores (fast, 85MB)
+     Fallback: if no fine-tuned model, MiniLM handles credibility too.
 
-Speed optimisations (v2):
-  - When RoBERTa is available, BART runs ONCE on the full article (not per sentence)
-    to get dimension scores, cutting BART calls from 20 → 1.
-  - RoBERTa sentence scoring runs in parallel via ThreadPoolExecutor.
-  - LIME only runs on the top-3 most suspicious sentences, with 10 samples (down from 30).
-  - URL results are cached in-memory (1-hour TTL) so repeat visits are instant.
+Speed optimisations (v3):
+  - MiniLM replaces BART (1.6GB → 85MB, ~10x faster, fits free-tier 512MB RAM)
+  - MiniLM runs ONCE on the full article for dimension scores (not per sentence)
+  - RoBERTa sentence scoring runs in parallel via ThreadPoolExecutor
+  - LIME only runs on the top-3 most suspicious sentences, 10 samples
+  - URL results cached in-memory (1-hour TTL)
 """
 
 import os
@@ -27,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 # ── Model state ───────────────────────────────────────────────────────────────
 _finetuned_classifier = None   # fine-tuned RoBERTa binary classifier
-_zeroshot_classifier  = None   # BART zero-shot for dimensions + fallback
+_nli_classifier       = None   # MiniLM NLI for dimensions + fallback scoring
 _lime_explainer       = LimeTextExplainer(class_names=["credible", "suspicious"])
 _explanation_cache: dict[str, str] = {}
 
@@ -36,6 +37,7 @@ _url_cache: dict[str, tuple[float, dict]] = {}
 URL_CACHE_TTL = 3600  # 1 hour
 
 MODEL_PATH = os.environ.get("MODEL_PATH", "../model/checkpoints/roberta-truthlens")
+NLI_MODEL  = "cross-encoder/nli-MiniLM2-L6-H768"
 
 CANDIDATE_LABELS = [
     "factual and credible",
@@ -58,10 +60,10 @@ def _get_device():
     import torch
     if torch.cuda.is_available():
         logger.info(f"GPU detected: {torch.cuda.get_device_name(0)}")
-        return 0          # CUDA device 0
+        return 0
     if torch.backends.mps.is_available():
-        return "mps"      # Apple Silicon
-    return -1             # CPU fallback
+        return "mps"
+    return -1
 
 
 def _get_finetuned():
@@ -76,29 +78,28 @@ def _get_finetuned():
             tokenizer=MODEL_PATH,
             device=device,
         )
-        logger.info("Fine-tuned model loaded.")
+        logger.info("Fine-tuned RoBERTa loaded.")
     return _finetuned_classifier
 
 
-def _get_zeroshot():
-    global _zeroshot_classifier
-    if _zeroshot_classifier is None:
+def _get_nli():
+    global _nli_classifier
+    if _nli_classifier is None:
         from transformers import pipeline
         device = _get_device()
-        logger.info("Loading BART zero-shot model...")
-        _zeroshot_classifier = pipeline(
+        logger.info(f"Loading MiniLM NLI model ({NLI_MODEL}) on device={device}...")
+        _nli_classifier = pipeline(
             "zero-shot-classification",
-            model="facebook/bart-large-mnli",
-            device=device,  # noqa
+            model=NLI_MODEL,
+            device=device,
         )
-        logger.info("BART model loaded.")
-    return _zeroshot_classifier
+        logger.info("MiniLM NLI model loaded.")
+    return _nli_classifier
 
 
 # ── Sentence splitting ────────────────────────────────────────────────────────
 
 def _split_sentences(text: str, max_sentences: int = 15) -> list[str]:
-    """Split into sentences, filter noise, cap at max_sentences."""
     sentences = re.split(r"(?<=[.!?])\s+", text.strip())
     filtered = [s for s in sentences if len(s.split()) >= 4]
     return filtered[:max_sentences]
@@ -118,10 +119,13 @@ def _finetuned_score(sentence: str) -> float:
         return round((1 - confidence) * 100, 1)
 
 
-def _zeroshot_scores(text: str) -> dict:
-    """Get all dimension scores from BART zero-shot (call once on article snippet)."""
-    classifier = _get_zeroshot()
-    result = classifier(text[:1024], CANDIDATE_LABELS, multi_label=True)
+def _nli_scores(text: str) -> dict:
+    """
+    Get dimension scores using MiniLM NLI (fast, 85MB).
+    Runs on a text snippet — call once per article, not per sentence.
+    """
+    classifier = _get_nli()
+    result = classifier(text[:512], CANDIDATE_LABELS, multi_label=True)
     scores_map = dict(zip(result["labels"], result["scores"]))
 
     misleading  = scores_map.get("misleading or false", 0.0)
@@ -140,14 +144,12 @@ def _zeroshot_scores(text: str) -> dict:
             "emotion":        round(emotional * 100, 1),
             "factual":        round(factual * 100, 1),
         },
-        "scores_map": scores_map,
     }
 
 
 # ── LIME ──────────────────────────────────────────────────────────────────────
 
 def _lime_explain_finetuned(sentence: str) -> str:
-    """LIME with the fine-tuned binary classifier — fast, 10 samples."""
     cache_key = "ft_" + hashlib.md5(sentence.encode()).hexdigest()
     if cache_key in _explanation_cache:
         return _explanation_cache[cache_key]
@@ -169,13 +171,12 @@ def _lime_explain_finetuned(sentence: str) -> str:
     return explanation
 
 
-def _lime_explain_zeroshot(sentence: str) -> str:
-    """LIME with BART zero-shot calls."""
-    cache_key = "zs_" + hashlib.md5(sentence.encode()).hexdigest()
+def _lime_explain_nli(sentence: str) -> str:
+    cache_key = "nli_" + hashlib.md5(sentence.encode()).hexdigest()
     if cache_key in _explanation_cache:
         return _explanation_cache[cache_key]
 
-    classifier = _get_zeroshot()
+    classifier = _get_nli()
 
     def predict_proba(texts: list[str]) -> np.ndarray:
         results = classifier(list(texts), CANDIDATE_LABELS, multi_label=True)
@@ -200,7 +201,7 @@ def _lime_explain_zeroshot(sentence: str) -> str:
 def _run_lime(sentence: str, predict_proba) -> str:
     try:
         exp = _lime_explainer.explain_instance(
-            sentence, predict_proba, num_features=6, num_samples=10,  # 10 (was 30)
+            sentence, predict_proba, num_features=6, num_samples=10,
         )
         features = exp.as_list()
         flagged  = [w for w, s in features if s >  0.02][:3]
@@ -219,10 +220,6 @@ def _run_lime(sentence: str, predict_proba) -> str:
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
-    """
-    Analyse article text.
-    - url: if provided, results are cached by URL (1-hour TTL).
-    """
     # ── URL cache hit ──────────────────────────────────────────────────────────
     if url:
         cached = _url_cache.get(url)
@@ -245,19 +242,14 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
 
     use_finetuned = _is_finetuned_available()
 
-    # ── Dimension scores: ONE BART call on article snippet ─────────────────────
-    # (was: one BART call per sentence — 15-20x slower)
-    if use_finetuned:
-        article_snippet = " ".join(sentences[:5])   # representative first 5 sentences
-        zs_article = _zeroshot_scores(article_snippet)
-        shared_dim_scores = zs_article["dim_scores"]
-    else:
-        # Fallback: will use BART per sentence for main score too
-        shared_dim_scores = None
+    # ── Dimension scores: ONE MiniLM call on article snippet ───────────────────
+    article_snippet = " ".join(sentences[:5])
+    nli = _nli_scores(article_snippet)
+    shared_dim_scores = nli["dim_scores"]
 
     # ── Sentence scoring ───────────────────────────────────────────────────────
     if use_finetuned:
-        # Parallel RoBERTa inference across sentences
+        # Parallel RoBERTa inference
         scores = [None] * len(sentences)
         with ThreadPoolExecutor(max_workers=4) as executor:
             future_to_idx = {
@@ -272,70 +264,50 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
                     logger.warning(f"Sentence {idx} scoring failed: {e}")
                     scores[idx] = 50.0
 
-        sentence_results = [
-            {
-                "sentence":    s,
-                "score":       scores[i],
-                "label":       _score_to_label(scores[i]),
-                "dim_scores":  shared_dim_scores,
-                "explanation": "",   # filled below for top sentences
-            }
-            for i, s in enumerate(sentences)
-        ]
-
-        # LIME only on the top-3 most suspicious sentences
-        top3_idx = sorted(range(len(sentence_results)),
-                          key=lambda i: sentence_results[i]["score"],
-                          reverse=True)[:3]
-        for i in top3_idx:
-            sentence_results[i]["explanation"] = _lime_explain_finetuned(sentences[i])
-
-        # Fill remaining with a lightweight label
-        for r in sentence_results:
-            if not r["explanation"]:
-                r["explanation"] = "No strong word-level signals detected."
-
         model_used = "roberta-finetuned"
-
     else:
-        # Fallback: BART per sentence (no fine-tuned model)
-        sentence_results = []
-        for sentence in sentences:
-            zs = _zeroshot_scores(sentence)
-            sentence_results.append({
-                "sentence":    sentence,
-                "score":       zs["overall"],
-                "label":       _score_to_label(zs["overall"]),
-                "dim_scores":  zs["dim_scores"],
-                "explanation": _lime_explain_zeroshot(sentence),
-            })
-        model_used = "bart-zeroshot"
+        # Fallback: use NLI overall score per sentence
+        scores = []
+        for s in sentences:
+            nli_s = _nli_scores(s)
+            scores.append(nli_s["overall"])
+        model_used = "minilm-nli"
+
+    sentence_results = [
+        {
+            "sentence":    s,
+            "score":       scores[i],
+            "label":       _score_to_label(scores[i]),
+            "explanation": "",
+        }
+        for i, s in enumerate(sentences)
+    ]
+
+    # LIME only on top-3 most suspicious sentences
+    top3_idx = sorted(range(len(sentence_results)),
+                      key=lambda i: sentence_results[i]["score"],
+                      reverse=True)[:3]
+    for i in top3_idx:
+        if use_finetuned:
+            sentence_results[i]["explanation"] = _lime_explain_finetuned(sentences[i])
+        else:
+            sentence_results[i]["explanation"] = _lime_explain_nli(sentences[i])
+
+    for r in sentence_results:
+        if not r["explanation"]:
+            r["explanation"] = "No strong word-level signals detected."
 
     # ── Aggregate ──────────────────────────────────────────────────────────────
     n       = len(sentence_results)
     overall = round(sum(r["score"] for r in sentence_results) / n, 1)
 
-    if use_finetuned:
-        avg_dims = shared_dim_scores
-    else:
-        dim_totals = {"sensationalism": 0.0, "bias": 0.0, "emotion": 0.0, "factual": 0.0}
-        for r in sentence_results:
-            for k in dim_totals:
-                dim_totals[k] += r["dim_scores"][k]
-        avg_dims = {k: round(v / n, 1) for k, v in dim_totals.items()}
-
-    # Strip internal dim_scores from sentence_results (not needed by frontend)
-    for r in sentence_results:
-        r.pop("dim_scores", None)
-
     result = {
         "overall_score":    overall,
-        "scores":           avg_dims,
+        "scores":           shared_dim_scores,
         "sentence_results": sentence_results,
         "model":            model_used,
     }
 
-    # ── Cache by URL ───────────────────────────────────────────────────────────
     if url:
         _url_cache[url] = (time.time(), result)
 
