@@ -14,6 +14,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy app
 COPY . .
 
+# Pre-download the MiniLM model during build so it's ready at startup
+# (avoids download timeout on first request)
+RUN python -c "from transformers import pipeline; pipeline('zero-shot-classification', model='cross-encoder/nli-MiniLM2-L6-H768')"
+
 # Expose port (Render injects $PORT at runtime)
 EXPOSE 10000
 
