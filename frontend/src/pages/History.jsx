@@ -8,12 +8,21 @@ export default function History() {
   const [loading, setLoading]   = useState(true)
   const [search, setSearch]     = useState("")
   const [filter, setFilter]     = useState("all") // "all" | "credible" | "uncertain" | "suspicious"
+  const isGuest = !localStorage.getItem("token")
 
   useEffect(() => {
-    getHistory()
-      .then((res) => setAnalyses(res.data))
-      .catch(() => {})
-      .finally(() => setLoading(false))
+    const token = localStorage.getItem("token")
+    if (token) {
+      getHistory()
+        .then((res) => setAnalyses(res.data))
+        .catch(() => {})
+        .finally(() => setLoading(false))
+    } else {
+      // Load from localStorage for guests
+      const guestHistory = JSON.parse(localStorage.getItem("guest_history") || "[]")
+      setAnalyses(guestHistory)
+      setLoading(false)
+    }
   }, [])
 
   const filtered = analyses.filter((a) => {
@@ -43,6 +52,34 @@ export default function History() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
+          {/* Guest banner */}
+          {isGuest && (
+            <div
+              className="flex items-center justify-between gap-3 rounded-xl px-4 py-3 mb-6"
+              style={{
+                background: "rgba(99,102,241,0.07)",
+                border: "1px solid rgba(99,102,241,0.18)",
+              }}
+            >
+              <div className="flex items-center gap-2.5 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                </svg>
+                <p className="text-xs" style={{ color: "var(--text-2)" }}>
+                  You're viewing local history.{" "}
+                  <span style={{ color: "#818cf8" }}>Sign in to save your history permanently.</span>
+                </p>
+              </div>
+              <Link
+                to="/login"
+                className="shrink-0 px-3 py-1.5 rounded-lg text-xs font-semibold"
+                style={{ background: "#6366f1", color: "white" }}
+              >
+                Sign In
+              </Link>
+            </div>
+          )}
+
           {/* Header */}
           <div className="mb-6 flex items-end justify-between">
             <div>

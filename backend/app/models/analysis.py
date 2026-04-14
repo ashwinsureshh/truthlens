@@ -37,4 +37,10 @@ class Analysis(db.Model):
             },
             "sentence_results": self.sentence_results,
             "created_at": self.created_at.isoformat(),
+            "sentence_count": len(self.sentence_results) if self.sentence_results else 0,
+            "confidence_level": (
+                "high" if len(self.sentence_results or []) >= 8
+                else "medium" if len(self.sentence_results or []) >= 4
+                else "low"
+            ),
         }

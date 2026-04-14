@@ -102,14 +102,47 @@ export default function Home() {
       setError(`Text too long (${input.length.toLocaleString()} chars). Max ${MAX_CHARS.toLocaleString()}.`)
       return
     }
+    // Input validation before submission
+    if (mode === "url" && input.trim() && !input.trim().startsWith("http://") && !input.trim().startsWith("https://")) {
+      setError("Please enter a full URL starting with https://")
+      return
+    }
+    if (mode === "text" && input.trim().split(/\s+/).length < 10) {
+      setError("Please paste at least a sentence or two for meaningful analysis.")
+      return
+    }
     setLoading(true)
     try {
       const res = mode === "text" ? await analyzeText(input) : await analyzeUrl(input)
+      const token = localStorage.getItem("token")
+      if (!token) {
+        const guestHistory = JSON.parse(localStorage.getItem("guest_history") || "[]")
+        guestHistory.unshift({
+          id: res.data.analysis_id,
+          overall_score: res.data.overall_score,
+          input_type: mode,
+          source_url: mode === "url" ? input : null,
+          created_at: new Date().toISOString(),
+        })
+        localStorage.setItem("guest_history", JSON.stringify(guestHistory.slice(0, 20)))
+      }
       navigate(`/results/${res.data.analysis_id}`)
     } catch (err) {
       const status = err.response?.status
-      if (status === 429) setError("Rate limit hit — wait a moment and try again.")
-      else setError(err.response?.data?.error || "Something went wrong.")
+      const serverMsg = err.response?.data?.error || ""
+      if (status === 429) {
+        setError("Too many requests — please wait a moment and try again.")
+      } else if (mode === "url" && (serverMsg.includes("scrape") || serverMsg.includes("500") || status === 422)) {
+        setError("This site blocks automated access. Try copying the article text and using Paste Text mode instead.")
+      } else if (mode === "url" && (serverMsg.includes("paywall") || serverMsg.includes("403"))) {
+        setError("This page appears to be behind a paywall. Try pasting the article text directly.")
+      } else if (serverMsg.includes("50 characters") || serverMsg.includes("too short")) {
+        setError("Text is too short — paste a full article or at least a few sentences for accurate analysis.")
+      } else if (status === 503 || status === 500) {
+        setError("The AI model is warming up — please try again in a few seconds.")
+      } else {
+        setError(serverMsg || "Something went wrong. Please try again.")
+      }
     } finally {
       setLoading(false)
     }

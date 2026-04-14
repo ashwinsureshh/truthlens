@@ -1,11 +1,14 @@
 import { createContext, useContext, useState, useEffect } from "react"
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
-import Home      from "./pages/Home"
-import Results   from "./pages/Results"
-import History   from "./pages/History"
-import Login     from "./pages/Login"
-import Benchmark from "./pages/Benchmark"
-import Navbar    from "./components/ui/Navbar"
+import Home       from "./pages/Home"
+import Results    from "./pages/Results"
+import History    from "./pages/History"
+import Login      from "./pages/Login"
+import Benchmark  from "./pages/Benchmark"
+import About      from "./pages/About"
+import Trending   from "./pages/Trending"
+import ReportCard from "./pages/ReportCard"
+import Navbar     from "./components/ui/Navbar"
 
 export const ThemeContext = createContext({ dark: true, toggle: () => {} })
 export const useTheme = () => useContext(ThemeContext)
@@ -40,12 +43,15 @@ export default function App() {
           <Navbar />
           <main className="min-h-screen pt-14">
             <Routes>
-              <Route path="/"              element={<Home />} />
-              <Route path="/results/:id"  element={<Results />} />
-              <Route path="/history"      element={<History />} />
-              <Route path="/login"        element={<Login />} />
+              <Route path="/"               element={<Home />} />
+              <Route path="/results/:id"   element={<Results />} />
+              <Route path="/history"       element={<History />} />
+              <Route path="/login"         element={<Login />} />
               <Route path="/benchmark/:id" element={<Benchmark />} />
-              <Route path="*"             element={<Navigate to="/" />} />
+              <Route path="/about"         element={<About />} />
+              <Route path="/trending"      element={<Trending />} />
+              <Route path="/report/:id"    element={<ReportCard />} />
+              <Route path="*"              element={<Navigate to="/" />} />
             </Routes>
           </main>
         </div>

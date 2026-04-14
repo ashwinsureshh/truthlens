@@ -89,3 +89,33 @@ def get_stats():
     """Public endpoint — returns total analyses count for homepage display."""
     count = Analysis.query.count()
     return jsonify({"total_analyses": count}), 200
+
+
+@analyze_bp.route("/trending", methods=["GET"])
+def get_trending():
+    """Public trending stats from recent analyses."""
+    from sqlalchemy import func
+    # Total analyses
+    total = Analysis.query.count()
+    # Last 7 days
+    from datetime import datetime, timezone, timedelta
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    recent = Analysis.query.filter(Analysis.created_at >= week_ago).count()
+    # Average score
+    avg_score = db.session.query(func.avg(Analysis.overall_score)).scalar() or 0
+    # Score distribution
+    credible = Analysis.query.filter(Analysis.overall_score < 45).count()
+    uncertain = Analysis.query.filter(Analysis.overall_score >= 45, Analysis.overall_score < 62).count()
+    suspicious = Analysis.query.filter(Analysis.overall_score >= 62).count()
+    # Recent 8 public analyses
+    recent_analyses = (Analysis.query
+        .order_by(Analysis.created_at.desc())
+        .limit(8)
+        .all())
+    return jsonify({
+        "total": total,
+        "this_week": recent,
+        "avg_score": round(float(avg_score), 1),
+        "distribution": {"credible": credible, "uncertain": uncertain, "suspicious": suspicious},
+        "recent": [{"id": a.id, "score": a.overall_score, "input_type": a.input_type, "source_url": a.source_url, "created_at": a.created_at.isoformat()} for a in recent_analyses]
+    }), 200

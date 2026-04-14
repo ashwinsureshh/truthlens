@@ -28,6 +28,8 @@ export default function Navbar() {
         <div className="flex items-center gap-1">
           <NavLink to="/" label="Analyze" active={isActive("/")} />
           {token && <NavLink to="/history" label="History" active={isActive("/history")} />}
+          <NavLink to="/trending" label="Trending" active={isActive("/trending")} />
+          <NavLink to="/about" label="About" active={isActive("/about")} />
 
           {/* Theme toggle */}
           <button
