@@ -24,6 +24,9 @@ from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from lime.lime_text import LimeTextExplainer
 
+# Disable LIME on CPU-only cloud deployments (too slow without fine-tuned model + GPU)
+LIME_ENABLED = os.environ.get("ENABLE_LIME", "true").lower() == "true"
+
 logger = logging.getLogger(__name__)
 
 # ── Model state ───────────────────────────────────────────────────────────────
@@ -283,15 +286,13 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
         for i, s in enumerate(sentences)
     ]
 
-    # LIME only on top-3 most suspicious sentences
-    top3_idx = sorted(range(len(sentence_results)),
-                      key=lambda i: sentence_results[i]["score"],
-                      reverse=True)[:3]
-    for i in top3_idx:
-        if use_finetuned:
+    # LIME only on top-3 most suspicious sentences (skip if disabled or no fine-tuned model)
+    if LIME_ENABLED and use_finetuned:
+        top3_idx = sorted(range(len(sentence_results)),
+                          key=lambda i: sentence_results[i]["score"],
+                          reverse=True)[:3]
+        for i in top3_idx:
             sentence_results[i]["explanation"] = _lime_explain_finetuned(sentences[i])
-        else:
-            sentence_results[i]["explanation"] = _lime_explain_nli(sentences[i])
 
     for r in sentence_results:
         if not r["explanation"]:
