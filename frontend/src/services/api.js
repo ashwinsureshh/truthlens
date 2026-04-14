@@ -19,5 +19,6 @@ export const getAnalysis = (id) => api.get(`/analyze/${id}`)
 export const getBenchmark = (id) => api.get(`/benchmark/${id}`)
 export const login = (email, password) => api.post("/auth/login", { email, password })
 export const register = (email, password) => api.post("/auth/register", { email, password })
+export const getStats = () => api.get("/stats")
 
 export default api

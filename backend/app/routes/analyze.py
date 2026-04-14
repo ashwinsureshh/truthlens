@@ -82,3 +82,10 @@ def analyze_url_route():
     db.session.commit()
 
     return jsonify({"analysis_id": analysis.id, **result}), 200
+
+
+@analyze_bp.route("/stats", methods=["GET"])
+def get_stats():
+    """Public endpoint — returns total analyses count for homepage display."""
+    count = Analysis.query.count()
+    return jsonify({"total_analyses": count}), 200

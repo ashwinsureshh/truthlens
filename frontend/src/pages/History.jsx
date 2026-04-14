@@ -6,6 +6,8 @@ import { getHistory } from "../services/api"
 export default function History() {
   const [analyses, setAnalyses] = useState([])
   const [loading, setLoading]   = useState(true)
+  const [search, setSearch]     = useState("")
+  const [filter, setFilter]     = useState("all") // "all" | "credible" | "uncertain" | "suspicious"
 
   useEffect(() => {
     getHistory()
@@ -13,6 +15,15 @@ export default function History() {
       .catch(() => {})
       .finally(() => setLoading(false))
   }, [])
+
+  const filtered = analyses.filter((a) => {
+    const pct = a.overall_score ?? 0
+    const verdict = pct < 30 ? "credible" : pct < 55 ? "uncertain" : "suspicious"
+    const matchesFilter = filter === "all" || verdict === filter
+    const searchText = (a.source_url || "Text input").toLowerCase()
+    const matchesSearch = !search || searchText.includes(search.toLowerCase())
+    return matchesFilter && matchesSearch
+  })
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
@@ -33,7 +44,7 @@ export default function History() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
         >
           {/* Header */}
-          <div className="mb-8 flex items-end justify-between">
+          <div className="mb-6 flex items-end justify-between">
             <div>
               <h2 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
                 Analysis History
@@ -43,9 +54,56 @@ export default function History() {
               </p>
             </div>
             <span className="text-sm font-medium" style={{ color: "var(--text-3)" }}>
-              {analyses.length} record{analyses.length !== 1 ? "s" : ""}
+              {filtered.length} record{filtered.length !== 1 ? "s" : ""}
             </span>
           </div>
+
+          {/* Search + Filter bar */}
+          {analyses.length > 0 && (
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              {/* Search input */}
+              <div className="relative flex-1">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                  style={{ color: "var(--text-3)" }}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.35-4.35"/>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search analyses..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="input-field w-full pl-9 pr-4 py-2 text-sm rounded-xl"
+                />
+              </div>
+              {/* Filter buttons */}
+              <div className="flex gap-1.5">
+                {["all", "credible", "uncertain", "suspicious"].map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    className="px-3 py-2 rounded-xl text-xs font-medium capitalize transition-all"
+                    style={filter === f ? {
+                      background: f === "all" ? "#6366f1" : f === "credible" ? "#10b981" : f === "uncertain" ? "#f59e0b" : "#ef4444",
+                      color: "white"
+                    } : {
+                      background: "var(--surface-2)",
+                      border: "1px solid var(--border)",
+                      color: "var(--text-2)"
+                    }}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {analyses.length === 0 ? (
             <div className="card p-14 text-center">
@@ -68,9 +126,16 @@ export default function History() {
                 Start Analyzing →
               </Link>
             </div>
+          ) : filtered.length === 0 ? (
+            <div className="card p-14 text-center">
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text)" }}>No matching results</p>
+              <p className="text-xs" style={{ color: "var(--text-3)" }}>
+                Try adjusting your search or filter.
+              </p>
+            </div>
           ) : (
             <div className="space-y-2">
-              {analyses.map((a, i) => {
+              {filtered.map((a, i) => {
                 const pct     = a.overall_score ?? 0
                 const color   = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
                 const badge   = pct < 30 ? "badge-credible" : pct < 55 ? "badge-uncertain" : "badge-suspicious"

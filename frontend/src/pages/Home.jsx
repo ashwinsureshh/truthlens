@@ -1,11 +1,28 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Circle } from "lucide-react"
-import { analyzeText, analyzeUrl } from "../services/api"
+import { analyzeText, analyzeUrl, getStats } from "../services/api"
 import { ElegantShape } from "../components/ui/ElegantShape"
 
 const PILLS = ["Sentence-Level", "Bias Detection", "Emotion Analysis", "Factual Scoring"]
+
+const EXAMPLES = [
+  {
+    label: "🔴 Conspiracy",
+    text: "The moon landing was completely staged by NASA and Hollywood directors. Astronauts never actually left Earth's atmosphere. The footage was filmed in a secret desert studio and the entire mission was fabricated to win the space race against the Soviet Union.",
+  },
+  {
+    label: "🟡 Misleading",
+    text: "Scientists have confirmed that drinking bleach cures cancer overnight. The government has been hiding this miracle treatment for decades to protect pharmaceutical profits. Thousands of patients have already recovered using this secret method.",
+  },
+  {
+    label: "🟢 Credible",
+    text: "NASA's Apollo 11 mission successfully landed astronauts Neil Armstrong and Buzz Aldrin on the Moon on July 20, 1969. The mission was the result of years of scientific research, engineering development, and thousands of hours of astronaut training.",
+  },
+]
+
+const LOADING_STEPS = ["Fetching content", "Parsing sentences", "Analyzing with AI", "Computing scores"]
 
 const fadeUpVariants = {
   hidden: { opacity: 0, y: 30 },
@@ -23,15 +40,48 @@ const STATS = [
 ]
 
 export default function Home() {
-  const [mode, setMode]       = useState("text")
-  const [input, setInput]     = useState("")
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState("")
+  const [mode, setMode]               = useState("text")
+  const [input, setInput]             = useState("")
+  const [loading, setLoading]         = useState(false)
+  const [error, setError]             = useState("")
+  const [loadingStep, setLoadingStep] = useState(0)
+  const [totalAnalyses, setTotalAnalyses] = useState(null)
   const navigate = useNavigate()
   const MAX_CHARS = 8000
 
+  // Fetch live stats on mount
+  useEffect(() => {
+    getStats()
+      .then((res) => setTotalAnalyses(res.data.total_analyses))
+      .catch(() => {})
+  }, [])
+
+  // Progress steps during loading
+  useEffect(() => {
+    if (!loading) {
+      setLoadingStep(0)
+      return
+    }
+    const interval = setInterval(() => {
+      setLoadingStep((prev) => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev))
+    }, 700)
+    return () => clearInterval(interval)
+  }, [loading])
+
+  // Cmd/Ctrl + Enter shortcut
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if ((e.metaKey || e.ctrlKey) && e.key === "Enter" && input.trim() && !loading) {
+        e.preventDefault()
+        handleSubmit(e)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [input, loading])
+
   async function handleSubmit(e) {
-    e.preventDefault()
+    e?.preventDefault()
     setError("")
     if (mode === "text" && input.length > MAX_CHARS) {
       setError(`Text too long (${input.length.toLocaleString()} chars). Max ${MAX_CHARS.toLocaleString()}.`)
@@ -190,7 +240,7 @@ export default function Home() {
           variants={fadeUpVariants}
           initial="hidden"
           animate="visible"
-          className="flex flex-wrap justify-center gap-2 mb-8"
+          className="flex flex-wrap justify-center gap-2 mb-4"
         >
           {PILLS.map((p) => (
             <span
@@ -204,6 +254,35 @@ export default function Home() {
             >
               {p}
             </span>
+          ))}
+        </motion.div>
+
+        {/* Try an example buttons */}
+        <motion.div
+          custom={3}
+          variants={fadeUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-wrap items-center justify-center gap-2 mb-8"
+        >
+          <span className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
+            Try an example:
+          </span>
+          {EXAMPLES.map((ex) => (
+            <button
+              key={ex.label}
+              type="button"
+              onClick={() => { setInput(ex.text); setMode("text") }}
+              className="px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 hover:opacity-80"
+              style={{
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                color: "var(--text-2)",
+                cursor: "pointer",
+              }}
+            >
+              {ex.label}
+            </button>
           ))}
         </motion.div>
 
@@ -300,12 +379,12 @@ export default function Home() {
                 >
                   {loading ? (
                     <span className="flex items-center justify-center gap-2">
-                      <span className="flex gap-1">
-                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-white" />
-                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-white" />
-                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-white" />
-                      </span>
-                      Analyzing...
+                      {/* Indigo spinner */}
+                      <svg className="animate-spin w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                      </svg>
+                      <span>{LOADING_STEPS[loadingStep]}</span>
                     </span>
                   ) : (
                     "Run Analysis →"
@@ -320,6 +399,11 @@ export default function Home() {
                   History
                 </button>
               </div>
+
+              {/* Keyboard shortcut hint */}
+              <p className="text-xs text-center" style={{ color: "var(--text-3)" }}>
+                ⌘↵ or Ctrl+↵ to submit
+              </p>
             </form>
           </div>
         </motion.div>
@@ -330,19 +414,31 @@ export default function Home() {
           variants={fadeUpVariants}
           initial="hidden"
           animate="visible"
-          className="grid grid-cols-3 gap-6 w-full pt-6"
+          className="w-full pt-6"
           style={{ borderTop: "1px solid var(--border)" }}
         >
-          {STATS.map(({ value, label }) => (
-            <div key={label} className="flex flex-col items-center">
-              <span className="text-2xl font-bold font-mono mb-0.5" style={{ color: "#6366f1" }}>
-                {value}
-              </span>
-              <span className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
-                {label}
+          {/* Live analyses badge */}
+          {totalAnalyses != null && (
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-xs" style={{ color: "var(--text-3)" }}>
+                {totalAnalyses.toLocaleString()} articles analyzed
               </span>
             </div>
-          ))}
+          )}
+
+          <div className="grid grid-cols-3 gap-6 w-full">
+            {STATS.map(({ value, label }) => (
+              <div key={label} className="flex flex-col items-center">
+                <span className="text-2xl font-bold font-mono mb-0.5" style={{ color: "#6366f1" }}>
+                  {value}
+                </span>
+                <span className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
+                  {label}
+                </span>
+              </div>
+            ))}
+          </div>
         </motion.div>
 
       </div>

@@ -61,7 +61,25 @@ export default function Results() {
   const badgeClass = score < 30 ? "badge-credible" : score < 55 ? "badge-uncertain" : "badge-suspicious"
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
+    <div className="min-h-screen print:shadow-none" style={{ background: "var(--bg)" }}>
+      {/* Toast notification */}
+      <AnimatePresence>
+        {copied && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 20, x: "-50%" }}
+            className="fixed bottom-6 left-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium shadow-lg"
+            style={{ background: "#6366f1", color: "white" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Link copied to clipboard!
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -85,7 +103,7 @@ export default function Results() {
               onClick={handleShare}
               className="btn-outline px-3 py-1.5 text-sm"
             >
-              {copied ? "Copied!" : "Share"}
+              Share
             </button>
             <button
               onClick={() => window.print()}
@@ -103,9 +121,7 @@ export default function Results() {
         </div>
 
         {/* Header card */}
-        <div
-          className="card p-5 flex items-center justify-between"
-        >
+        <div className="card p-5 flex items-center justify-between">
           <div>
             <h2 className="text-base font-semibold mb-0.5" style={{ color: "var(--text)" }}>
               Analysis Complete
@@ -113,6 +129,23 @@ export default function Results() {
             <p className="text-xs" style={{ color: "var(--text-3)" }}>
               Sentence-level credibility breakdown
             </p>
+            {/* Source domain badge */}
+            {data.source_url && (() => {
+              try {
+                const domain = new URL(data.source_url).hostname
+                return (
+                  <div className="flex items-center gap-2 mt-2">
+                    <img
+                      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
+                      alt=""
+                      className="w-4 h-4 rounded-sm"
+                      onError={(e) => { e.target.style.display = "none" }}
+                    />
+                    <span className="text-xs" style={{ color: "var(--text-3)" }}>{domain}</span>
+                  </div>
+                )
+              } catch { return null }
+            })()}
           </div>
           <span className={badgeClass}>{label}</span>
         </div>
