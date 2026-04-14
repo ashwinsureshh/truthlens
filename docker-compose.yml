@@ -24,7 +24,7 @@ services:
     env_file:
       - ./backend/.env
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-postgres}:${DB_PASSWORD:-postgres}@db:5432/truthlens
+      DATABASE_URL: ${DATABASE_URL:-postgresql://postgres:postgres@db:5432/truthlens}
       CORS_ORIGINS: ${FRONTEND_URL:-http://localhost}
     depends_on:
       db:
