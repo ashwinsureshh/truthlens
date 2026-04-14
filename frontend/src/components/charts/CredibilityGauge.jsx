@@ -8,8 +8,8 @@ export default function CredibilityGauge({ score = 0 }) {
   const arc    = circ * 0.75
   const offset = arc - (arc * pct / 100)
 
-  const label   = pct < 40 ? "CREDIBLE" : pct < 70 ? "UNCERTAIN" : "SUSPICIOUS"
-  const opacity = pct < 40 ? 1 : pct < 70 ? 0.55 : 0.3
+  const label   = pct < 30 ? "CREDIBLE" : pct < 55 ? "UNCERTAIN" : "SUSPICIOUS"
+  const opacity = pct < 30 ? 1 : pct < 55 ? 0.55 : 0.3
 
   return (
     <div className="flex flex-col items-center gap-4">
