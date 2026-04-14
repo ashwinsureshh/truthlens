@@ -22,6 +22,21 @@ const EXAMPLES = [
   },
 ]
 
+const EXAMPLE_URLS = [
+  {
+    label: "🟢 Wikipedia",
+    url: "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope",
+  },
+  {
+    label: "🟢 BBC News",
+    url: "https://www.bbc.com/news/science-environment-62885150",
+  },
+  {
+    label: "🔴 The Onion",
+    url: "https://www.theonion.com/scientists-warn-that-the-earth-is-slowly-drifting-out-1850923456",
+  },
+]
+
 const LOADING_STEPS = ["Fetching content", "Parsing sentences", "Analyzing with AI", "Computing scores"]
 
 const fadeUpVariants = {
@@ -268,22 +283,40 @@ export default function Home() {
           <span className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
             Try an example:
           </span>
-          {EXAMPLES.map((ex) => (
-            <button
-              key={ex.label}
-              type="button"
-              onClick={() => { setInput(ex.text); setMode("text") }}
-              className="px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 hover:opacity-80"
-              style={{
-                background: "var(--surface-2)",
-                border: "1px solid var(--border)",
-                color: "var(--text-2)",
-                cursor: "pointer",
-              }}
-            >
-              {ex.label}
-            </button>
-          ))}
+          {mode === "text"
+            ? EXAMPLES.map((ex) => (
+                <button
+                  key={ex.label}
+                  type="button"
+                  onClick={() => setInput(ex.text)}
+                  className="px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 hover:opacity-80"
+                  style={{
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-2)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {ex.label}
+                </button>
+              ))
+            : EXAMPLE_URLS.map((ex) => (
+                <button
+                  key={ex.label}
+                  type="button"
+                  onClick={() => setInput(ex.url)}
+                  className="px-3 py-1 text-xs font-medium rounded-full transition-all duration-200 hover:opacity-80"
+                  style={{
+                    background: "var(--surface-2)",
+                    border: "1px solid var(--border)",
+                    color: "var(--text-2)",
+                    cursor: "pointer",
+                  }}
+                >
+                  {ex.label}
+                </button>
+              ))
+          }
         </motion.div>
 
         {/* Analysis card */}
