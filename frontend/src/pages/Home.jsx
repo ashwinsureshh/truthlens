@@ -122,6 +122,7 @@ export default function Home() {
           overall_score: res.data.overall_score,
           input_type: mode,
           source_url: mode === "url" ? input : null,
+          text_preview: mode === "text" ? input.trim().slice(0, 80) : null,
           created_at: new Date().toISOString(),
         })
         localStorage.setItem("guest_history", JSON.stringify(guestHistory.slice(0, 20)))

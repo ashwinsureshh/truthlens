@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react"
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Home       from "./pages/Home"
 import Results    from "./pages/Results"
 import History    from "./pages/History"
@@ -8,6 +8,7 @@ import Benchmark  from "./pages/Benchmark"
 import About      from "./pages/About"
 import Trending   from "./pages/Trending"
 import ReportCard from "./pages/ReportCard"
+import NotFound  from "./pages/NotFound"
 import Navbar     from "./components/ui/Navbar"
 
 export const ThemeContext = createContext({ dark: true, toggle: () => {} })
@@ -51,7 +52,7 @@ export default function App() {
               <Route path="/about"         element={<About />} />
               <Route path="/trending"      element={<Trending />} />
               <Route path="/report/:id"    element={<ReportCard />} />
-              <Route path="*"              element={<Navigate to="/" />} />
+              <Route path="*"              element={<NotFound />} />
             </Routes>
           </main>
         </div>

@@ -207,7 +207,7 @@ export default function History() {
                             #{a.id} · {new Date(a.created_at).toLocaleDateString()}
                           </p>
                           <p className="text-sm truncate" style={{ color: "var(--text-2)" }}>
-                            {a.source_url || "Text input"}
+                            {a.source_url || a.text_preview || "Text input"}
                           </p>
                         </div>
                       </div>
