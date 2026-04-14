@@ -1,0 +1,10 @@
+# TruthLens — Training dependencies (run on PC with RTX 5070)
+# Install with: pip install -r requirements-train.txt
+
+torch==2.5.1+cu124 --extra-index-url https://download.pytorch.org/whl/cu124
+transformers==4.47.0
+datasets==3.2.0
+scikit-learn==1.6.0
+accelerate==1.2.1
+numpy==1.26.4
+pandas==2.2.3
