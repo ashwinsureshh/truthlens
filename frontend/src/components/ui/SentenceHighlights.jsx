@@ -10,41 +10,59 @@ export default function SentenceHighlights({ sentences }) {
       {/* Legend */}
       <div className="flex gap-5 mb-5">
         {[
-          { label: "CREDIBLE",   opacity: "opacity-90" },
-          { label: "UNCERTAIN",  opacity: "opacity-50" },
-          { label: "SUSPICIOUS", opacity: "opacity-20" },
-        ].map(({ label, opacity }) => (
-          <span key={label} className="flex items-center gap-1.5 font-terminal text-[9px] tracking-widest text-white/30">
-            <span className={`w-2 h-2 rounded-sm bg-white ${opacity}`} />
+          { label: "Credible",   color: "#10b981" },
+          { label: "Uncertain",  color: "#f59e0b" },
+          { label: "Suspicious", color: "#ef4444" },
+        ].map(({ label, color }) => (
+          <span key={label} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-3)" }}>
+            <span
+              className="w-2.5 h-2.5 rounded-sm shrink-0"
+              style={{ background: color, opacity: 0.8 }}
+            />
             {label}
           </span>
         ))}
       </div>
 
       {sentences.map((s, i) => {
-        const pct      = s.score ?? 0
-        const isGood   = pct < 40
-        const isMid    = pct >= 40 && pct < 70
-        const borderOp = isGood ? "border-white/40" : isMid ? "border-white/20" : "border-white/08"
-        const bgOp     = isGood ? "bg-white/[0.04]" : isMid ? "bg-white/[0.02]" : "bg-transparent"
-        const scoreOp  = isGood ? "text-white" : isMid ? "text-white/50" : "text-white/25"
+        const pct         = s.score ?? 0
+        const borderColor = pct < 30 ? '#10b981' : pct < 55 ? '#f59e0b' : '#ef4444'
+        const scoreColor  = pct < 30 ? '#10b981' : pct < 55 ? '#f59e0b' : '#ef4444'
+        const bgAlpha     = pct < 30 ? 0.04 : pct < 55 ? 0.03 : 0.02
 
         return (
           <div
             key={i}
             onClick={() => setExpanded(expanded === i ? null : i)}
-            className={`rounded-sm p-4 cursor-pointer transition-all duration-200 border-l-2 border-y border-r ${borderOp} ${bgOp} hover:bg-white/[0.04]`}
+            className="rounded-lg p-4 cursor-pointer transition-all duration-200"
+            style={{
+              borderTop: `1px solid var(--border)`,
+              borderRight: `1px solid var(--border)`,
+              borderBottom: `1px solid var(--border)`,
+              borderLeft: `3px solid ${borderColor}`,
+              background: "var(--surface)",
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.borderColor = "var(--border-strong)"}
+            onMouseLeave={(e) => e.currentTarget.style.borderColor = "var(--border)"}
           >
             <div className="flex items-start justify-between gap-4">
-              <p className="text-[12px] font-terminal text-white/70 leading-relaxed">{s.sentence}</p>
-              <span className={`text-xs font-terminal font-bold shrink-0 ${scoreOp}`}>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>
+                {s.sentence}
+              </p>
+              <span className="text-sm font-bold font-mono shrink-0" style={{ color: scoreColor }}>
                 {pct.toFixed(0)}
               </span>
             </div>
 
             {expanded === i && s.explanation && (
-              <p className="mt-3 text-[10px] font-terminal text-white/25 border-t border-white/[0.05] pt-3 leading-relaxed">
-                &gt; {s.explanation}
+              <p
+                className="mt-3 text-xs leading-relaxed pt-3"
+                style={{
+                  color: "var(--text-3)",
+                  borderTop: "1px solid var(--border)"
+                }}
+              >
+                {s.explanation}
               </p>
             )}
           </div>

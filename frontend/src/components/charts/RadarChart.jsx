@@ -17,16 +17,16 @@ export default function RadarChart({ scores }) {
   return (
     <ResponsiveContainer width="100%" height={200}>
       <RechartsRadar data={data} cx="50%" cy="50%" outerRadius="68%">
-        <PolarGrid stroke="rgba(255,255,255,0.06)" />
+        <PolarGrid stroke="rgba(148,163,184,0.2)" />
         <PolarAngleAxis
           dataKey="axis"
-          tick={{ fill: "rgba(255,255,255,0.25)", fontSize: 10, fontFamily: '"JetBrains Mono", monospace' }}
+          tick={{ fill: "var(--text-3)", fontSize: 11, fontFamily: "Inter, system-ui, sans-serif" }}
         />
         <Radar
           name="score"
           dataKey="value"
-          stroke="rgba(255,255,255,0.6)"
-          fill="rgba(255,255,255,0.05)"
+          stroke="#6366f1"
+          fill="rgba(99,102,241,0.15)"
           fillOpacity={1}
           strokeWidth={1.5}
         />

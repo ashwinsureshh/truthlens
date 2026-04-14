@@ -15,17 +15,17 @@ export default function History() {
   }, [])
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
       <div className="flex gap-1.5">
-        <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
-        <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
-        <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
+        <span className="dot-bounce w-2 h-2 rounded-full" style={{ background: "#6366f1" }} />
+        <span className="dot-bounce w-2 h-2 rounded-full" style={{ background: "#6366f1" }} />
+        <span className="dot-bounce w-2 h-2 rounded-full" style={{ background: "#6366f1" }} />
       </div>
     </div>
   )
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <div className="max-w-4xl mx-auto px-4 py-12">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -35,35 +35,46 @@ export default function History() {
           {/* Header */}
           <div className="mb-8 flex items-end justify-between">
             <div>
-              <p className="font-terminal text-[9px] text-white/15 tracking-[0.3em] uppercase mb-2">
-                // ANALYSIS LOG
+              <h2 className="text-2xl font-bold" style={{ color: "var(--text)" }}>
+                Analysis History
+              </h2>
+              <p className="text-sm mt-1" style={{ color: "var(--text-3)" }}>
+                Your past credibility analyses
               </p>
-              <h2 className="font-terminal text-xl font-bold text-white tracking-widest">HISTORY</h2>
             </div>
-            <span className="font-terminal text-[9px] text-white/20 tracking-widest">
-              {analyses.length} RECORD{analyses.length !== 1 ? "S" : ""}
+            <span className="text-sm font-medium" style={{ color: "var(--text-3)" }}>
+              {analyses.length} record{analyses.length !== 1 ? "s" : ""}
             </span>
           </div>
 
           {analyses.length === 0 ? (
-            <div className="spotlight-card p-14 text-center">
-              <p className="font-terminal text-[10px] text-white/15 tracking-[0.2em] uppercase mb-6">
-                NO RECORDS FOUND
-              </p>
-              <Link to="/"
-                className="btn-primary inline-flex items-center gap-2 px-6 py-2.5 rounded-sm font-terminal text-[10px] tracking-[0.2em] uppercase"
+            <div className="card p-14 text-center">
+              <div
+                className="w-12 h-12 rounded-full mx-auto mb-4 flex items-center justify-center"
+                style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
               >
-                START ANALYZING →
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: "var(--text-3)" }}>
+                  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+              <p className="text-sm font-medium mb-1" style={{ color: "var(--text)" }}>No records yet</p>
+              <p className="text-xs mb-6" style={{ color: "var(--text-3)" }}>
+                Run your first analysis to see results here.
+              </p>
+              <Link
+                to="/"
+                className="btn-primary inline-flex items-center gap-2 px-6 py-2.5 text-sm"
+              >
+                Start Analyzing →
               </Link>
             </div>
           ) : (
             <div className="space-y-2">
               {analyses.map((a, i) => {
                 const pct     = a.overall_score ?? 0
-                const isGood  = pct < 40
-                const isMid   = pct >= 40 && pct < 70
-                const op      = isGood ? "text-white" : isMid ? "text-white/50" : "text-white/25"
-                const verdict = isGood ? "CREDIBLE" : isMid ? "UNCERTAIN" : "SUSPICIOUS"
+                const color   = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
+                const badge   = pct < 30 ? "badge-credible" : pct < 55 ? "badge-uncertain" : "badge-suspicious"
+                const verdict = pct < 30 ? "Credible" : pct < 55 ? "Uncertain" : "Suspicious"
 
                 return (
                   <motion.div
@@ -74,30 +85,34 @@ export default function History() {
                   >
                     <Link
                       to={`/results/${a.id}`}
-                      className="spotlight-card flex items-center justify-between gap-4 p-4 block transition-all duration-200"
+                      className="card card-hover flex items-center justify-between gap-4 p-4 block"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        {/* Icon */}
-                        <div className="w-8 h-8 border border-white/10 rounded-sm flex items-center justify-center shrink-0">
-                          <span className="font-terminal text-[9px] text-white/30">
+                        {/* Type badge */}
+                        <div
+                          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
+                          style={{
+                            background: "var(--surface-2)",
+                            border: "1px solid var(--border)"
+                          }}
+                        >
+                          <span className="text-xs font-mono font-medium" style={{ color: "var(--text-3)" }}>
                             {a.input_type === "url" ? "URL" : "TXT"}
                           </span>
                         </div>
                         <div className="min-w-0">
-                          <p className="font-terminal text-[9px] text-white/15 tracking-widest uppercase mb-0.5">
-                            #{a.id} // {new Date(a.created_at).toLocaleDateString()}
+                          <p className="text-xs mb-0.5 font-mono" style={{ color: "var(--text-3)" }}>
+                            #{a.id} · {new Date(a.created_at).toLocaleDateString()}
                           </p>
-                          <p className="font-terminal text-[11px] text-white/50 truncate">
+                          <p className="text-sm truncate" style={{ color: "var(--text-2)" }}>
                             {a.source_url || "Text input"}
                           </p>
                         </div>
                       </div>
 
                       <div className="shrink-0 flex items-center gap-3">
-                        <span className={`font-terminal text-xs tracking-[0.25em] uppercase px-3 py-1 border border-white/10 rounded-sm ${op}`}>
-                          {verdict}
-                        </span>
-                        <span className={`font-terminal text-lg font-bold ${op}`}>
+                        <span className={badge}>{verdict}</span>
+                        <span className="text-lg font-bold font-mono" style={{ color }}>
                           {pct}
                         </span>
                       </div>

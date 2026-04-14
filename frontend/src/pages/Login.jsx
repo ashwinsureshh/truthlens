@@ -25,7 +25,10 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4">
+    <div
+      className="min-h-screen flex items-center justify-center px-4"
+      style={{ background: "var(--bg)" }}
+    >
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -35,7 +38,6 @@ export default function Login() {
         {/* Branding */}
         <div className="text-center mb-8">
           <div className="inline-flex flex-col items-center gap-3 mb-4">
-            {/* Logo icon */}
             <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-12 h-12">
               <circle cx="20" cy="20" r="20" fill="white" />
               <circle cx="20" cy="20" r="19" fill="black" />
@@ -46,74 +48,99 @@ export default function Login() {
               <circle cx="25" cy="20" r="3.2" fill="black" />
               <circle cx="26" cy="18.8" r="1.1" fill="white" />
             </svg>
-            <span className="font-terminal text-sm tracking-[0.2em] uppercase text-white">TruthLens</span>
+            <span className="text-lg font-bold" style={{ color: "var(--text)" }}>TruthLens</span>
           </div>
-          <p className="font-terminal text-[10px] text-white/20 tracking-[0.2em] uppercase">
-            {mode === "login" ? "> AUTHENTICATE TO CONTINUE" : "> CREATE NEW IDENTITY"}
+          <p className="text-sm" style={{ color: "var(--text-3)" }}>
+            {mode === "login" ? "Sign in to your account" : "Create a new account"}
           </p>
         </div>
 
-        <div className="spotlight-card p-6 border-beam">
+        <div className="card p-6">
           {/* Mode toggle */}
-          <div className="flex bg-white/[0.03] rounded-sm p-0.5 mb-6 border border-white/[0.06]">
+          <div
+            className="flex rounded-lg p-0.5 mb-6"
+            style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+          >
             {["login", "register"].map((m) => (
-              <button key={m}
+              <button
+                key={m}
                 onClick={() => { setMode(m); setError("") }}
-                className={`flex-1 py-2 rounded-sm text-[10px] font-terminal tracking-[0.2em] uppercase transition-all duration-200 ${
-                  mode === m ? "bg-white text-black font-bold" : "text-white/25 hover:text-white/60"
-                }`}
+                className="flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200"
+                style={mode === m
+                  ? { background: "var(--surface)", color: "var(--text)", boxShadow: "var(--shadow)" }
+                  : { background: "transparent", color: "var(--text-3)" }
+                }
               >
-                {m === "login" ? "SIGN IN" : "REGISTER"}
+                {m === "login" ? "Sign In" : "Register"}
               </button>
             ))}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="font-terminal text-[9px] text-white/20 uppercase tracking-[0.2em]">
-                // EMAIL
+              <label
+                className="text-xs font-medium"
+                style={{ color: "var(--text-2)" }}
+              >
+                Email
               </label>
               <input
                 type="email"
-                placeholder="> user@domain.com"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="input-mono w-full rounded-sm p-3.5 text-[11px]"
+                className="input-field p-3"
                 required
               />
             </div>
             <div className="space-y-1.5">
-              <label className="font-terminal text-[9px] text-white/20 uppercase tracking-[0.2em]">
-                // PASSWORD
+              <label
+                className="text-xs font-medium"
+                style={{ color: "var(--text-2)" }}
+              >
+                Password
               </label>
               <input
                 type="password"
-                placeholder="> ••••••••"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="input-mono w-full rounded-sm p-3.5 text-[11px]"
+                className="input-field p-3"
                 required
               />
             </div>
 
             {error && (
-              <div className="font-terminal text-[10px] text-white/50 bg-white/[0.03] border border-white/[0.1] rounded-sm px-4 py-3">
-                ! ERR :: {error}
+              <div
+                className="flex items-start gap-2 text-sm rounded-xl px-4 py-3"
+                style={{
+                  color: "#ef4444",
+                  background: "rgba(239,68,68,0.08)",
+                  border: "1px solid rgba(239,68,68,0.2)"
+                }}
+              >
+                <svg className="shrink-0 mt-0.5" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>
+                <span>{error}</span>
               </div>
             )}
 
-            <button type="submit"
-              className="btn-primary w-full py-3 rounded-sm text-[11px] font-terminal tracking-[0.2em] uppercase mt-2"
+            <button
+              type="submit"
+              className="btn-primary w-full py-3 text-sm font-semibold mt-2"
             >
-              {mode === "login" ? "AUTHENTICATE →" : "CREATE ACCOUNT →"}
+              {mode === "login" ? "Sign In →" : "Create Account →"}
             </button>
           </form>
         </div>
 
-        <p className="text-center font-terminal text-[10px] text-white/15 mt-5 tracking-widest">
-          NO ACCOUNT REQUIRED //{" "}
-          <Link to="/" className="text-white/35 hover:text-white/70 transition-colors underline underline-offset-4">
-            CONTINUE AS GUEST
+        <p className="text-center text-sm mt-5" style={{ color: "var(--text-3)" }}>
+          No account required —{" "}
+          <Link
+            to="/"
+            className="font-medium transition-colors underline underline-offset-4"
+            style={{ color: "var(--text-2)" }}
+          >
+            Continue as Guest
           </Link>
         </p>
       </motion.div>

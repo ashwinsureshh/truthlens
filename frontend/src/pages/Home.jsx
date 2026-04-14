@@ -1,23 +1,26 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
+import { Circle } from "lucide-react"
 import { analyzeText, analyzeUrl } from "../services/api"
+import { ElegantShape } from "../components/ui/ElegantShape"
 
-const STAGGER = {
-  container: { animate: { transition: { staggerChildren: 0.08 } } },
-  item: {
-    initial: { opacity: 0, y: 24 },
-    animate: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
-  },
+const PILLS = ["Sentence-Level", "Bias Detection", "Emotion Analysis", "Factual Scoring"]
+
+const fadeUpVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i) => ({
+    opacity: 1,
+    y: 0,
+    transition: { duration: 1, delay: 0.5 + i * 0.2, ease: [0.25, 0.4, 0.25, 1] },
+  }),
 }
 
 const STATS = [
-  { value: "4",    label: "Analysis Dims" },
-  { value: "~2s",  label: "Avg Speed"     },
-  { value: "100%", label: "Open Source"   },
+  { value: "4",    label: "Analysis Dimensions" },
+  { value: "~2s",  label: "Avg Processing"      },
+  { value: "100%", label: "Open Source"          },
 ]
-
-const PILLS = ["Sentence-Level", "Bias Detection", "Emotion Analysis", "Factual Scoring"]
 
 export default function Home() {
   const [mode, setMode]       = useState("text")
@@ -25,25 +28,13 @@ export default function Home() {
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState("")
   const navigate = useNavigate()
-  const cardRef = useRef(null)
-
   const MAX_CHARS = 8000
-
-  // Spotlight effect
-  function handleMouseMove(e) {
-    const rect = cardRef.current?.getBoundingClientRect()
-    if (!rect) return
-    const x = ((e.clientX - rect.left) / rect.width)  * 100
-    const y = ((e.clientY - rect.top)  / rect.height) * 100
-    cardRef.current.style.setProperty("--mouse-x", x + "%")
-    cardRef.current.style.setProperty("--mouse-y", y + "%")
-  }
 
   async function handleSubmit(e) {
     e.preventDefault()
     setError("")
     if (mode === "text" && input.length > MAX_CHARS) {
-      setError(`Text is too long (${input.length.toLocaleString()} chars). Max ${MAX_CHARS.toLocaleString()}.`)
+      setError(`Text too long (${input.length.toLocaleString()} chars). Max ${MAX_CHARS.toLocaleString()}.`)
       return
     }
     setLoading(true)
@@ -60,71 +51,192 @@ export default function Home() {
   }
 
   return (
-    <section className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden px-4">
+    <div
+      className="relative min-h-screen w-full flex items-center justify-center overflow-hidden"
+      style={{ background: "var(--bg)" }}
+    >
+      {/* Ambient gradient */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.12), transparent 70%)",
+        }}
+      />
 
-      <motion.div
-        variants={STAGGER.container}
-        initial="initial"
-        animate="animate"
-        className="relative z-10 flex flex-col items-center text-center w-full max-w-xl mx-auto"
-      >
+      {/* Floating shapes */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <ElegantShape
+          delay={0.3}
+          width={600}
+          height={140}
+          rotate={12}
+          gradient="from-indigo-500/[0.12]"
+          className="left-[-10%] md:left-[-5%] top-[15%] md:top-[20%]"
+        />
+        <ElegantShape
+          delay={0.5}
+          width={500}
+          height={120}
+          rotate={-15}
+          gradient="from-violet-500/[0.10]"
+          className="right-[-5%] md:right-[0%] top-[65%] md:top-[72%]"
+        />
+        <ElegantShape
+          delay={0.4}
+          width={300}
+          height={80}
+          rotate={-8}
+          gradient="from-indigo-400/[0.10]"
+          className="left-[5%] md:left-[10%] bottom-[8%] md:bottom-[12%]"
+        />
+        <ElegantShape
+          delay={0.6}
+          width={200}
+          height={60}
+          rotate={20}
+          gradient="from-purple-500/[0.10]"
+          className="right-[15%] md:right-[20%] top-[10%] md:top-[14%]"
+        />
+        <ElegantShape
+          delay={0.7}
+          width={150}
+          height={40}
+          rotate={-25}
+          gradient="from-blue-500/[0.08]"
+          className="left-[20%] md:left-[25%] top-[5%] md:top-[8%]"
+        />
+      </div>
 
-        {/* System label */}
-        <motion.div variants={STAGGER.item} className="mb-8">
-          <span className="font-terminal text-xs tracking-[0.3em] text-white/60 uppercase border border-white/30 px-4 py-1.5 rounded-sm">
-            SYSTEM_ONLINE // v2.0
+      {/* Top/bottom fade */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "linear-gradient(to bottom, var(--bg) 0%, transparent 12%, transparent 88%, var(--bg) 100%)",
+        }}
+      />
+
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-xl mx-auto px-4 py-16 flex flex-col items-center text-center">
+
+        {/* Badge */}
+        <motion.div
+          custom={0}
+          variants={fadeUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-10"
+          style={{
+            background: "rgba(99,102,241,0.08)",
+            border: "1px solid rgba(99,102,241,0.2)",
+          }}
+        >
+          <Circle className="h-2 w-2 fill-indigo-400 text-indigo-400" />
+          <span className="text-xs font-medium tracking-wide" style={{ color: "#818cf8" }}>
+            AI-Powered · RoBERTa Model · Sentence-Level
           </span>
         </motion.div>
 
-        {/* Heading */}
-        <motion.h1 variants={STAGGER.item}
-          className="text-5xl sm:text-7xl font-bold leading-[0.95] tracking-tight mb-6 text-white"
+        {/* Headline */}
+        <motion.div
+          custom={1}
+          variants={fadeUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="mb-6"
         >
-          <span
-            className="glitch block"
-            data-text="TRUTH"
-          >TRUTH</span>
-          <span className="block text-white/50">LENS</span>
-        </motion.h1>
+          <h1 className="text-5xl sm:text-7xl font-bold leading-[0.95] tracking-tight">
+            <span
+              style={{
+                background: "linear-gradient(to bottom, var(--text) 60%, var(--text-2))",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              Detect
+            </span>
+            <br />
+            <span
+              style={{
+                background: "linear-gradient(135deg, #818cf8 0%, #c4b5fd 50%, #6366f1 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              misinformation
+            </span>
+          </h1>
+        </motion.div>
 
         {/* Subtitle */}
-        <motion.p variants={STAGGER.item}
-          className="font-terminal text-xs text-white/70 tracking-widest mb-10 leading-relaxed"
+        <motion.p
+          custom={2}
+          variants={fadeUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="text-base leading-relaxed mb-8 max-w-md font-light"
+          style={{ color: "var(--text-2)" }}
         >
-          &gt; AI-POWERED CREDIBILITY ANALYSIS ENGINE<br />
-          &gt; ROBERTA MODEL // SENTENCE-LEVEL DETECTION
+          Paste any article or URL. TruthLens analyzes credibility sentence-by-sentence
+          using fine-tuned RoBERTa AI.
         </motion.p>
 
         {/* Feature pills */}
-        <motion.div variants={STAGGER.item} className="flex flex-wrap justify-center gap-2 mb-8">
+        <motion.div
+          custom={3}
+          variants={fadeUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="flex flex-wrap justify-center gap-2 mb-8"
+        >
           {PILLS.map((p) => (
-            <span key={p}
-              className="font-terminal px-3 py-1 text-[10px] tracking-widest uppercase text-white/60 border border-white/[0.25] rounded-sm"
-            >{p}</span>
+            <span
+              key={p}
+              className="px-3 py-1 text-xs font-medium rounded-full"
+              style={{
+                background: "var(--surface-2)",
+                border: "1px solid var(--border)",
+                color: "var(--text-2)",
+              }}
+            >
+              {p}
+            </span>
           ))}
         </motion.div>
 
         {/* Analysis card */}
-        <motion.div variants={STAGGER.item} className="w-full mb-8">
-          <div
-            ref={cardRef}
-            onMouseMove={handleMouseMove}
-            className="spotlight-card p-6"
-          >
+        <motion.div
+          custom={4}
+          variants={fadeUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full mb-8"
+        >
+          <div className="card p-6">
             {/* Mode toggle */}
-            <div className="flex bg-white/[0.03] rounded-sm p-0.5 mb-5 border border-white/[0.06]">
+            <div
+              className="flex rounded-lg p-0.5 mb-5"
+              style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
+            >
               {[
-                { key: "text", label: "PASTE TEXT" },
-                { key: "url",  label: "ENTER URL"  },
+                { key: "text", label: "Paste Text" },
+                { key: "url",  label: "Enter URL"  },
               ].map(({ key, label }) => (
-                <button key={key}
+                <button
+                  key={key}
                   onClick={() => { setMode(key); setInput("") }}
-                  className={`flex-1 py-2 rounded-sm text-[10px] font-terminal tracking-[0.2em] transition-all duration-200 ${
+                  className="flex-1 py-2 rounded-md text-sm font-medium transition-all duration-200"
+                  style={
                     mode === key
-                      ? "bg-white text-black font-bold"
-                      : "text-white/25 hover:text-white/60"
-                  }`}
-                >{label}</button>
+                      ? { background: "#6366f1", color: "#ffffff" }
+                      : { background: "transparent", color: "var(--text-3)" }
+                  }
+                >
+                  {label}
+                </button>
               ))}
             </div>
 
@@ -134,15 +246,22 @@ export default function Home() {
                   <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="> paste article content here..."
+                    placeholder="Paste article content here..."
                     rows={6}
-                    className="input-mono w-full rounded-sm p-4 text-[11px] leading-relaxed resize-none"
+                    className="input-field w-full p-4 text-sm leading-relaxed resize-none rounded-xl"
                     required
                   />
-                  <span className={`absolute bottom-3 right-3 text-[10px] font-terminal ${
-                    input.length > MAX_CHARS ? "text-white/70" :
-                    input.length > MAX_CHARS * 0.85 ? "text-white/40" : "text-white/15"
-                  }`}>
+                  <span
+                    className="absolute bottom-3 right-3 text-xs font-mono"
+                    style={{
+                      color:
+                        input.length > MAX_CHARS
+                          ? "#ef4444"
+                          : input.length > MAX_CHARS * 0.85
+                          ? "var(--text-3)"
+                          : "var(--border-strong)",
+                    }}
+                  >
                     {input.length.toLocaleString()}/{MAX_CHARS.toLocaleString()}
                   </span>
                 </div>
@@ -151,15 +270,24 @@ export default function Home() {
                   type="url"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  placeholder="> https://example.com/article"
-                  className="input-mono w-full rounded-sm p-4 text-[11px]"
+                  placeholder="https://example.com/article"
+                  className="input-field w-full p-4 text-sm rounded-xl"
                   required
                 />
               )}
 
               {error && (
-                <div className="flex items-start gap-2.5 text-white/60 text-[11px] font-terminal bg-white/[0.03] border border-white/[0.1] rounded-sm px-4 py-3">
-                  <span className="shrink-0">! ERR</span>
+                <div
+                  className="flex items-center gap-2.5 text-sm rounded-xl px-4 py-3"
+                  style={{
+                    color: "#ef4444",
+                    background: "rgba(239,68,68,0.08)",
+                    border: "1px solid rgba(239,68,68,0.2)",
+                  }}
+                >
+                  <svg className="shrink-0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+                  </svg>
                   <span>{error}</span>
                 </div>
               )}
@@ -168,26 +296,28 @@ export default function Home() {
                 <button
                   type="submit"
                   disabled={loading || !input.trim()}
-                  className="btn-primary flex-1 py-3 rounded-sm text-[11px] font-terminal tracking-[0.2em] uppercase"
+                  className="btn-primary flex-1 py-3 text-sm font-semibold rounded-xl"
                 >
                   {loading ? (
-                    <span className="flex items-center justify-center gap-2.5">
+                    <span className="flex items-center justify-center gap-2">
                       <span className="flex gap-1">
-                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-black" />
-                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-black" />
-                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-black" />
+                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-white" />
+                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-white" />
+                        <span className="dot-bounce w-1.5 h-1.5 rounded-full bg-white" />
                       </span>
-                      ANALYZING...
+                      Analyzing...
                     </span>
-                  ) : "RUN ANALYSIS →"}
+                  ) : (
+                    "Run Analysis →"
+                  )}
                 </button>
 
                 <button
                   type="button"
                   onClick={() => navigate("/history")}
-                  className="btn-outline px-5 py-3 rounded-sm text-[10px] font-terminal tracking-[0.2em] uppercase"
+                  className="btn-secondary px-5 py-3 text-sm rounded-xl"
                 >
-                  HISTORY
+                  History
                 </button>
               </div>
             </form>
@@ -195,16 +325,27 @@ export default function Home() {
         </motion.div>
 
         {/* Stats */}
-        <motion.div variants={STAGGER.item} className="grid grid-cols-3 gap-6 w-full border-t border-white/[0.06] pt-6">
+        <motion.div
+          custom={5}
+          variants={fadeUpVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-3 gap-6 w-full pt-6"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
           {STATS.map(({ value, label }) => (
             <div key={label} className="flex flex-col items-center">
-              <span className="text-2xl font-bold font-terminal text-white mb-1">{value}</span>
-              <span className="text-[9px] font-terminal text-white/55 uppercase tracking-[0.2em]">{label}</span>
+              <span className="text-2xl font-bold font-mono mb-0.5" style={{ color: "#6366f1" }}>
+                {value}
+              </span>
+              <span className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
+                {label}
+              </span>
             </div>
           ))}
         </motion.div>
 
-      </motion.div>
-    </section>
+      </div>
+    </div>
   )
 }

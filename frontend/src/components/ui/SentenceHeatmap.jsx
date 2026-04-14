@@ -6,30 +6,41 @@ export default function SentenceHeatmap({ sentences }) {
       {/* Legend */}
       <div className="flex items-center gap-6 mb-5">
         {[
-          { label: "CREDIBLE",   bg: "rgba(255,255,255,0.25)" },
-          { label: "UNCERTAIN",  bg: "rgba(255,255,255,0.12)" },
-          { label: "SUSPICIOUS", bg: "rgba(255,255,255,0.04)" },
-        ].map(({ label, bg }) => (
-          <span key={label} className="flex items-center gap-1.5 font-terminal text-[9px] tracking-widest text-white/25">
-            <span className="w-8 h-3 rounded-sm inline-block" style={{ background: bg }} />
+          { label: "Credible",   bg: "rgba(16,185,129,0.25)",  border: "rgba(16,185,129,0.5)"  },
+          { label: "Uncertain",  bg: "rgba(245,158,11,0.2)",   border: "rgba(245,158,11,0.5)"  },
+          { label: "Suspicious", bg: "rgba(239,68,68,0.15)",   border: "rgba(239,68,68,0.4)"   },
+        ].map(({ label, bg, border }) => (
+          <span key={label} className="flex items-center gap-1.5 text-xs" style={{ color: "var(--text-3)" }}>
+            <span
+              className="w-8 h-3 rounded-sm inline-block"
+              style={{ background: bg, borderBottom: `2px solid ${border}` }}
+            />
             {label}
           </span>
         ))}
       </div>
 
       {/* Heatmap text */}
-      <p className="text-[12px] font-terminal leading-8 text-white/60">
+      <p className="text-sm leading-8" style={{ color: "var(--text-2)" }}>
         {sentences.map((s, i) => {
-          const pct     = s.score ?? 0
-          const isGood  = pct < 40
-          const isMid   = pct >= 40 && pct < 70
-          const alpha   = isGood
-            ? 0.12 + (pct / 40) * 0.15
-            : isMid
-            ? 0.08 + ((pct - 40) / 30) * 0.08
-            : 0.02 + ((pct - 70) / 30) * 0.04
+          const pct = s.score ?? 0
+          const isCredible   = pct < 30
+          const isUncertain  = pct >= 30 && pct < 55
+          // isSuspicious is >= 55
 
-          const borderOp = isGood ? 0.4 : isMid ? 0.2 : 0.1
+          const bg = isCredible
+            ? "rgba(16, 185, 129, 0.15)"
+            : isUncertain
+            ? "rgba(245, 158, 11, 0.15)"
+            : "rgba(239, 68, 68, 0.15)"
+
+          const borderColor = isCredible
+            ? "rgba(16,185,129,0.4)"
+            : isUncertain
+            ? "rgba(245,158,11,0.4)"
+            : "rgba(239,68,68,0.4)"
+
+          const scoreColor = isCredible ? "#10b981" : isUncertain ? "#f59e0b" : "#ef4444"
 
           return (
             <span
@@ -37,21 +48,29 @@ export default function SentenceHeatmap({ sentences }) {
               title={`Score: ${pct.toFixed(0)} — ${s.label}`}
               className="relative group cursor-default"
               style={{
-                background: `rgba(255,255,255,${alpha.toFixed(3)})`,
-                borderBottom: `1px solid rgba(255,255,255,${borderOp})`,
-                borderRadius: "2px",
-                padding: "1px 2px",
+                background: bg,
+                borderBottom: `2px solid ${borderColor}`,
+                borderRadius: "3px",
+                padding: "1px 3px",
                 marginRight: "3px",
               }}
             >
               {s.sentence}
 
               {/* Tooltip */}
-              <span className="absolute bottom-full left-0 mb-2 hidden group-hover:flex items-center gap-2 bg-black border border-white/15 font-terminal text-[10px] tracking-widest rounded-sm px-3 py-1.5 whitespace-nowrap z-20 uppercase">
-                <span className="text-white/40">SCORE</span>
-                <span className="text-white font-bold">{pct.toFixed(0)}</span>
-                <span className="text-white/30">//</span>
-                <span className="text-white/50">{s.label?.toUpperCase()}</span>
+              <span
+                className="absolute bottom-full left-0 mb-2 hidden group-hover:flex items-center gap-2 text-xs rounded-lg px-3 py-1.5 whitespace-nowrap z-20"
+                style={{
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  boxShadow: "var(--shadow-hover)",
+                  color: "var(--text-2)"
+                }}
+              >
+                <span style={{ color: "var(--text-3)" }}>Score</span>
+                <span className="font-bold font-mono" style={{ color: scoreColor }}>{pct.toFixed(0)}</span>
+                <span style={{ color: "var(--border-strong)" }}>·</span>
+                <span>{s.label}</span>
               </span>
             </span>
           )

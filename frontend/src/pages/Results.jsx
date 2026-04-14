@@ -32,36 +32,36 @@ export default function Results() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center">
-      <div className="flex flex-col items-center gap-5">
+    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
+      <div className="flex flex-col items-center gap-4">
         <div className="flex gap-1.5">
-          <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
-          <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
-          <span className="dot-bounce w-1.5 h-1.5 rounded-sm bg-white" />
+          <span className="dot-bounce w-2 h-2 rounded-full" style={{ background: "#6366f1" }} />
+          <span className="dot-bounce w-2 h-2 rounded-full" style={{ background: "#6366f1" }} />
+          <span className="dot-bounce w-2 h-2 rounded-full" style={{ background: "#6366f1" }} />
         </div>
-        <p className="font-terminal text-[10px] text-white/20 tracking-[0.3em] uppercase">
-          Loading analysis...
-        </p>
+        <p className="text-sm" style={{ color: "var(--text-3)" }}>Loading analysis...</p>
       </div>
     </div>
   )
 
   if (error) return (
-    <div className="min-h-screen flex items-center justify-center px-4">
-      <div className="spotlight-card p-10 text-center max-w-sm w-full">
-        <p className="font-terminal text-white/40 text-xs mb-6">! ERR :: {error}</p>
-        <Link to="/" className="btn-outline px-5 py-2 rounded-sm text-[10px] font-terminal tracking-[0.2em] uppercase inline-flex items-center gap-2">
-          ← NEW ANALYSIS
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg)" }}>
+      <div className="card p-10 text-center max-w-sm w-full">
+        <p className="text-sm mb-6" style={{ color: "var(--text-2)" }}>{error}</p>
+        <Link to="/" className="btn-outline px-5 py-2 text-sm inline-flex items-center gap-2">
+          ← New Analysis
         </Link>
       </div>
     </div>
   )
 
   const { overall_score, scores, sentence_results } = data
-  const label   = overall_score < 30 ? "CREDIBLE" : overall_score < 55 ? "UNCERTAIN" : "SUSPICIOUS"
+  const score = overall_score
+  const label = score < 30 ? "Credible" : score < 55 ? "Uncertain" : "Suspicious"
+  const badgeClass = score < 30 ? "badge-credible" : score < 55 ? "badge-uncertain" : "badge-suspicious"
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen" style={{ background: "var(--bg)" }}>
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -71,64 +71,83 @@ export default function Results() {
 
         {/* Top bar */}
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-1.5 font-terminal text-[10px] text-white/25 hover:text-white/60 transition-colors tracking-widest uppercase">
-            ← BACK
+          <Link
+            to="/"
+            className="btn-outline px-3 py-1.5 text-sm gap-1.5"
+          >
+            ← Back
           </Link>
           <div className="flex items-center gap-2">
-            <Link to="/" className="btn-outline px-3 py-1.5 rounded-sm text-[10px] font-terminal tracking-widest uppercase">
-              + NEW
+            <Link to="/" className="btn-outline px-3 py-1.5 text-sm">
+              + New
             </Link>
-            <button onClick={handleShare}
-              className="btn-outline px-3 py-1.5 rounded-sm text-[10px] font-terminal tracking-widest uppercase"
+            <button
+              onClick={handleShare}
+              className="btn-outline px-3 py-1.5 text-sm"
             >
-              {copied ? "COPIED!" : "SHARE"}
+              {copied ? "Copied!" : "Share"}
             </button>
-            <button onClick={() => window.print()}
-              className="btn-outline px-3 py-1.5 rounded-sm text-[10px] font-terminal tracking-widest uppercase"
+            <button
+              onClick={() => window.print()}
+              className="btn-outline px-3 py-1.5 text-sm"
             >
-              EXPORT
+              Export
             </button>
-            <span className="font-terminal text-[9px] text-white/15 tracking-widest ml-1">#{id}</span>
+            <span
+              className="text-xs font-mono ml-1"
+              style={{ color: "var(--text-3)" }}
+            >
+              #{id}
+            </span>
           </div>
         </div>
 
         {/* Header card */}
-        <div className="spotlight-card p-5 flex items-center justify-between border-beam">
+        <div
+          className="card p-5 flex items-center justify-between"
+        >
           <div>
-            <h2 className="font-terminal text-sm font-bold text-white tracking-widest mb-0.5">
-              ANALYSIS COMPLETE
+            <h2 className="text-base font-semibold mb-0.5" style={{ color: "var(--text)" }}>
+              Analysis Complete
             </h2>
-            <p className="font-terminal text-[9px] text-white/20 tracking-[0.2em] uppercase">
+            <p className="text-xs" style={{ color: "var(--text-3)" }}>
               Sentence-level credibility breakdown
             </p>
           </div>
-          <span className="font-terminal text-[10px] tracking-[0.25em] uppercase px-4 py-1.5 border border-white/15 rounded-sm text-white/50">
-            {label}
-          </span>
+          <span className={badgeClass}>{label}</span>
         </div>
 
         {/* Score + Radar grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="spotlight-card p-6 flex flex-col items-center">
-            <p className="font-terminal text-[9px] text-white/20 tracking-[0.2em] uppercase mb-6">
-              // OVERALL CREDIBILITY
+          <div className="card p-6 flex flex-col items-center">
+            <p className="text-xs font-medium mb-6" style={{ color: "var(--text-3)" }}>
+              Overall Credibility
             </p>
             <CredibilityGauge score={overall_score} />
           </div>
-          <div className="spotlight-card p-6 flex flex-col">
-            <p className="font-terminal text-[9px] text-white/20 tracking-[0.2em] uppercase mb-3">
-              // DIMENSION BREAKDOWN
+          <div className="card p-6 flex flex-col">
+            <p className="text-xs font-medium mb-3" style={{ color: "var(--text-3)" }}>
+              Dimension Breakdown
             </p>
             <RadarChart scores={scores} />
             <div className="grid grid-cols-2 gap-2 mt-4">
               {Object.entries(scores ?? {}).map(([key, val]) => {
-                const op = val < 40 ? "text-white" : val < 70 ? "text-white/50" : "text-white/25"
+                const scoreColor = val < 30 ? "#10b981" : val < 55 ? "#f59e0b" : "#ef4444"
                 return (
-                  <div key={key}
-                    className="flex items-center justify-between bg-white/[0.02] rounded-sm px-3 py-2 border border-white/[0.05]"
+                  <div
+                    key={key}
+                    className="flex items-center justify-between rounded-lg px-3 py-2"
+                    style={{
+                      background: "var(--surface-2)",
+                      border: "1px solid var(--border)"
+                    }}
                   >
-                    <span className="font-terminal text-[9px] text-white/25 uppercase tracking-widest capitalize">{key}</span>
-                    <span className={`font-terminal text-xs font-bold ${op}`}>{val?.toFixed(0)}</span>
+                    <span className="text-xs font-medium capitalize" style={{ color: "var(--text-2)" }}>
+                      {key}
+                    </span>
+                    <span className="text-xs font-bold font-mono" style={{ color: scoreColor }}>
+                      {val?.toFixed(0)}
+                    </span>
                   </div>
                 )
               })}
@@ -137,27 +156,36 @@ export default function Results() {
         </div>
 
         {/* Tabs panel */}
-        <div className="spotlight-card overflow-hidden">
-          <div className="flex border-b border-white/[0.06]">
+        <div className="card overflow-hidden">
+          <div
+            className="flex"
+            style={{ borderBottom: "1px solid var(--border)" }}
+          >
             {TABS.map((t) => (
-              <button key={t} onClick={() => setTab(t)}
-                className={`px-6 py-3.5 font-terminal text-[10px] tracking-[0.2em] uppercase transition-all duration-200 relative ${
-                  tab === t ? "text-white" : "text-white/20 hover:text-white/50"
-                }`}
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className="px-6 py-3.5 text-sm font-medium relative transition-all duration-200"
+                style={{
+                  color: tab === t ? "var(--text)" : "var(--text-3)",
+                }}
               >
                 {t}
                 {tab === t && (
-                  <motion.div layoutId="tab-line"
-                    className="absolute bottom-0 left-0 right-0 h-px bg-white/50"
+                  <motion.div
+                    layoutId="tab-line"
+                    className="absolute bottom-0 left-0 right-0 h-0.5"
+                    style={{ background: "#6366f1" }}
                   />
                 )}
               </button>
             ))}
             {tab === "Benchmark" && (
-              <button onClick={() => navigate("/benchmark/" + id)}
-                className="ml-auto mr-4 my-2 btn-outline px-3 py-1 rounded-sm font-terminal text-[9px] tracking-widest uppercase"
+              <button
+                onClick={() => navigate("/benchmark/" + id)}
+                className="ml-auto mr-4 my-2 btn-outline px-3 py-1 text-xs"
               >
-                FULL REPORT
+                Full Report
               </button>
             )}
           </div>
@@ -169,8 +197,8 @@ export default function Results() {
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase mb-5">
-                    // SENTENCE ANALYSIS
+                  <p className="text-xs font-medium mb-5" style={{ color: "var(--text-3)" }}>
+                    Sentence Analysis
                   </p>
                   <SentenceHighlights sentences={sentence_results} />
                 </motion.div>
@@ -180,8 +208,8 @@ export default function Results() {
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase mb-5">
-                    // INTENSITY HEATMAP
+                  <p className="text-xs font-medium mb-5" style={{ color: "var(--text-3)" }}>
+                    Intensity Heatmap
                   </p>
                   <SentenceHeatmap sentences={sentence_results} />
                 </motion.div>
@@ -205,49 +233,64 @@ export default function Results() {
 
 function BenchmarkPreview({ score, id }) {
   const tools = [
-    { name: "TRUTHLENS",         score: score,      note: "RoBERTa // sentence-level" },
-    { name: "CLAIMBUSTER",       score: score + 8,  note: "SVM-based claim scoring"   },
-    { name: "GOOGLE FACT CHECK", score: score - 5,  note: "Knowledge graph lookup"    },
+    { name: "TruthLens",         score: score,      note: "RoBERTa — sentence-level" },
+    { name: "ClaimBuster",       score: score + 8,  note: "SVM-based claim scoring"  },
+    { name: "Google Fact Check", score: score - 5,  note: "Knowledge graph lookup"   },
   ]
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between mb-5">
-        <p className="font-terminal text-[9px] text-white/15 tracking-[0.2em] uppercase">
-          // BENCHMARK COMPARISON
+        <p className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
+          Benchmark Comparison
         </p>
-        <span className="font-terminal text-[9px] text-white/20 border border-white/10 px-2 py-0.5 rounded-sm tracking-widest">
-          LIVE DATA PENDING
+        <span
+          className="text-xs px-2 py-0.5 rounded-md"
+          style={{
+            color: "var(--text-3)",
+            border: "1px solid var(--border)",
+            background: "var(--surface-2)"
+          }}
+        >
+          Live data pending
         </span>
       </div>
       {tools.map((t) => {
         const pct = Math.min(100, Math.max(0, t.score))
-        const op  = pct < 40 ? 1 : pct < 70 ? 0.5 : 0.25
+        const color = pct < 30 ? "#10b981" : pct < 55 ? "#f59e0b" : "#ef4444"
         return (
-          <div key={t.name} className="bg-white/[0.02] rounded-sm p-4 border border-white/[0.05]">
+          <div
+            key={t.name}
+            className="rounded-xl p-4"
+            style={{
+              background: "var(--surface-2)",
+              border: "1px solid var(--border)"
+            }}
+          >
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="font-terminal text-xs font-bold text-white tracking-widest">{t.name}</p>
-                <p className="font-terminal text-[9px] text-white/20 mt-0.5 tracking-widest">{t.note}</p>
+                <p className="text-sm font-semibold" style={{ color: "var(--text)" }}>{t.name}</p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-3)" }}>{t.note}</p>
               </div>
-              <span className="font-terminal text-xl font-bold" style={{ color: `rgba(255,255,255,${op})` }}>
+              <span className="text-xl font-bold font-mono" style={{ color }}>
                 {pct}
               </span>
             </div>
-            <div className="h-px bg-white/[0.06] rounded-full overflow-hidden">
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
               <motion.div
                 initial={{ width: 0 }} animate={{ width: pct + "%" }}
                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="h-full rounded-full"
-                style={{ background: `rgba(255,255,255,${op})` }}
+                style={{ background: color }}
               />
             </div>
           </div>
         )
       })}
-      <Link to={"/benchmark/" + id}
-        className="btn-outline w-full py-2.5 rounded-sm font-terminal text-[10px] tracking-[0.2em] uppercase text-center block mt-2"
+      <Link
+        to={"/benchmark/" + id}
+        className="btn-outline w-full py-2.5 text-sm text-center block mt-2"
       >
-        VIEW FULL BENCHMARK REPORT →
+        View Full Benchmark Report →
       </Link>
     </div>
   )
