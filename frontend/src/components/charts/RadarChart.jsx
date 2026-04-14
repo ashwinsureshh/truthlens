@@ -11,7 +11,7 @@ export default function RadarChart({ scores }) {
     { axis: "Sensationalism", value: scores?.sensationalism ?? 0 },
     { axis: "Bias",           value: scores?.bias           ?? 0 },
     { axis: "Emotion",        value: scores?.emotion        ?? 0 },
-    { axis: "Factual",        value: scores?.factual        ?? 0 },
+    { axis: "Fact Risk",      value: scores?.factual        ?? 0 },
   ]
 
   return (

@@ -55,10 +55,44 @@ export default function Results() {
     </div>
   )
 
-  const { overall_score, scores, sentence_results } = data
+  const { overall_score, scores, sentence_results, sentence_count, confidence_level } = data
   const score = overall_score
   const label = score < 45 ? "Credible" : score < 62 ? "Uncertain" : "Suspicious"
   const badgeClass = score < 45 ? "badge-credible" : score < 62 ? "badge-uncertain" : "badge-suspicious"
+
+  const VERDICT_INFO = {
+    Credible: {
+      color: "#10b981",
+      icon: "✓",
+      title: "Content appears credible",
+      desc: "Low bias, factual language, and minimal sensationalism detected. Still recommended to verify key claims with primary sources.",
+    },
+    Uncertain: {
+      color: "#f59e0b",
+      icon: "⚠",
+      title: "Exercise caution",
+      desc: "Mixed signals detected — some sentences may be misleading or unverified. Cross-reference with trusted news outlets before sharing.",
+    },
+    Suspicious: {
+      color: "#ef4444",
+      icon: "✕",
+      title: "High misinformation risk",
+      desc: "Strong indicators of bias, emotional manipulation, or false claims detected. Do not share without independent verification from reliable sources.",
+    },
+  }
+  const verdictInfo = VERDICT_INFO[label]
+
+  const DIM_LABELS = {
+    sensationalism: "Sensationalism",
+    bias:           "Bias",
+    emotion:        "Emotion",
+    factual:        "Fact Risk",
+  }
+  const confidenceBadge = {
+    high:   { label: "High Confidence",   color: "#10b981" },
+    medium: { label: "Medium Confidence", color: "#f59e0b" },
+    low:    { label: "Low Confidence",    color: "#94a3b8" },
+  }[confidence_level ?? "medium"]
 
   return (
     <div className="min-h-screen print:shadow-none" style={{ background: "var(--bg)" }}>
@@ -121,33 +155,66 @@ export default function Results() {
         </div>
 
         {/* Header card */}
-        <div className="card p-5 flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold mb-0.5" style={{ color: "var(--text)" }}>
-              Analysis Complete
-            </h2>
-            <p className="text-xs" style={{ color: "var(--text-3)" }}>
-              Sentence-level credibility breakdown
-            </p>
-            {/* Source domain badge */}
-            {data.source_url && (() => {
-              try {
-                const domain = new URL(data.source_url).hostname
-                return (
-                  <div className="flex items-center gap-2 mt-2">
-                    <img
-                      src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
-                      alt=""
-                      className="w-4 h-4 rounded-sm"
-                      onError={(e) => { e.target.style.display = "none" }}
-                    />
-                    <span className="text-xs" style={{ color: "var(--text-3)" }}>{domain}</span>
-                  </div>
-                )
-              } catch { return null }
-            })()}
+        <div className="card p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold mb-0.5" style={{ color: "var(--text)" }}>
+                Analysis Complete
+              </h2>
+              <div className="flex flex-wrap items-center gap-2 mt-1">
+                <span className="text-xs" style={{ color: "var(--text-3)" }}>
+                  {sentence_count ?? "—"} sentences analyzed
+                </span>
+                {confidenceBadge && (
+                  <>
+                    <span style={{ color: "var(--border-strong)" }}>·</span>
+                    <span className="text-xs font-medium" style={{ color: confidenceBadge.color }}>
+                      {confidenceBadge.label}
+                    </span>
+                  </>
+                )}
+              </div>
+              {/* Source domain badge */}
+              {data.source_url && (() => {
+                try {
+                  const domain = new URL(data.source_url).hostname
+                  return (
+                    <div className="flex items-center gap-2 mt-2">
+                      <img
+                        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=16`}
+                        alt=""
+                        className="w-4 h-4 rounded-sm"
+                        onError={(e) => { e.target.style.display = "none" }}
+                      />
+                      <span className="text-xs" style={{ color: "var(--text-3)" }}>{domain}</span>
+                    </div>
+                  )
+                } catch { return null }
+              })()}
+            </div>
+            <span className={badgeClass}>{label}</span>
           </div>
-          <span className={badgeClass}>{label}</span>
+
+          {/* Verdict explanation */}
+          <div
+            className="mt-4 flex items-start gap-3 rounded-xl px-4 py-3"
+            style={{
+              background: `${verdictInfo.color}10`,
+              border: `1px solid ${verdictInfo.color}30`,
+            }}
+          >
+            <span className="text-base font-bold shrink-0 mt-0.5" style={{ color: verdictInfo.color }}>
+              {verdictInfo.icon}
+            </span>
+            <div>
+              <p className="text-xs font-semibold mb-0.5" style={{ color: verdictInfo.color }}>
+                {verdictInfo.title}
+              </p>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>
+                {verdictInfo.desc}
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Score + Radar grid */}
@@ -159,13 +226,16 @@ export default function Results() {
             <CredibilityGauge score={overall_score} />
           </div>
           <div className="card p-6 flex flex-col">
-            <p className="text-xs font-medium mb-3" style={{ color: "var(--text-3)" }}>
-              Dimension Breakdown
-            </p>
+            <div className="flex items-center justify-between mb-3">
+              <p className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
+                Dimension Breakdown
+              </p>
+              <span className="text-xs" style={{ color: "var(--text-3)" }}>lower = better</span>
+            </div>
             <RadarChart scores={scores} />
             <div className="grid grid-cols-2 gap-2 mt-4">
               {Object.entries(scores ?? {}).map(([key, val]) => {
-                const scoreColor = val < 45 ? "#10b981" : val < 62 ? "#f59e0b" : "#ef4444"
+                const scoreColor = val < 25 ? "#10b981" : val < 50 ? "#f59e0b" : "#ef4444"
                 return (
                   <div
                     key={key}
@@ -175,8 +245,8 @@ export default function Results() {
                       border: "1px solid var(--border)"
                     }}
                   >
-                    <span className="text-xs font-medium capitalize" style={{ color: "var(--text-2)" }}>
-                      {key}
+                    <span className="text-xs font-medium" style={{ color: "var(--text-2)" }}>
+                      {DIM_LABELS[key] ?? key}
                     </span>
                     <span className="text-xs font-bold font-mono" style={{ color: scoreColor }}>
                       {val?.toFixed(0)}
@@ -257,6 +327,27 @@ export default function Results() {
               )}
             </AnimatePresence>
           </div>
+        </div>
+
+        {/* Disclaimer */}
+        <div
+          className="flex items-start gap-3 rounded-xl px-4 py-3"
+          style={{
+            background: "var(--surface-2)",
+            border: "1px solid var(--border)",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5" style={{ color: "var(--text-3)" }}>
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+          </svg>
+          <p className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
+            <strong style={{ color: "var(--text-2)" }}>AI Analysis Disclaimer:</strong> TruthLens uses a fine-tuned RoBERTa model to estimate credibility.
+            Results are probabilistic signals, not definitive verdicts. Always verify claims independently
+            using trusted sources such as{" "}
+            <a href="https://www.snopes.com" target="_blank" rel="noopener noreferrer" style={{ color: "#6366f1" }}>Snopes</a>,{" "}
+            <a href="https://www.factcheck.org" target="_blank" rel="noopener noreferrer" style={{ color: "#6366f1" }}>FactCheck.org</a>, or{" "}
+            <a href="https://www.reuters.com/fact-check" target="_blank" rel="noopener noreferrer" style={{ color: "#6366f1" }}>Reuters Fact Check</a>.
+          </p>
         </div>
 
       </motion.div>

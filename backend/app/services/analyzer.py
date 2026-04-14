@@ -157,7 +157,9 @@ def _nli_scores(text: str) -> dict:
             "sensationalism": round(sensational * 100, 1),
             "bias":           round(biased * 100, 1),
             "emotion":        round(emotional * 100, 1),
-            "factual":        round(factual * 100, 1),
+            # Inverted: high factual_prob = credible, so risk = (1 - factual)
+            # Now all 4 dimensions are "lower = better / less suspicious"
+            "factual":        round((1 - factual) * 100, 1),
         },
     }
 
@@ -311,13 +313,34 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
             r["explanation"] = "No strong word-level signals detected."
 
     # ── Aggregate ──────────────────────────────────────────────────────────────
-    n       = len(sentence_results)
-    overall = round(sum(r["score"] for r in sentence_results) / n, 1)
+    n = len(sentence_results)
+    raw_scores = [r["score"] for r in sentence_results]
+
+    # Weighted scoring:
+    # 50% mean of all sentences (overall tone)
+    # 30% mean of top-3 most suspicious sentences (catches buried misinformation)
+    # 20% NLI cross-validation (independent model signal)
+    mean_score = sum(raw_scores) / n
+    top_n      = min(3, n)
+    top_mean   = sum(sorted(raw_scores, reverse=True)[:top_n]) / top_n
+    nli_score  = nli["overall"]
+
+    overall = round(min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score)), 1)
+
+    # Confidence level based on how many sentences were analyzed
+    if n >= 8:
+        confidence_level = "high"
+    elif n >= 4:
+        confidence_level = "medium"
+    else:
+        confidence_level = "low"
 
     result = {
         "overall_score":    overall,
         "scores":           shared_dim_scores,
         "sentence_results": sentence_results,
+        "sentence_count":   n,
+        "confidence_level": confidence_level,
         "model":            model_used,
     }
 
