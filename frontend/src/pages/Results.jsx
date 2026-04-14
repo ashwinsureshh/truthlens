@@ -139,6 +139,12 @@ export default function Results() {
             >
               Share
             </button>
+            <Link
+              to={`/report/${id}`}
+              className="btn-outline px-3 py-1.5 text-sm"
+            >
+              Report Card
+            </Link>
             <button
               onClick={() => window.print()}
               className="btn-outline px-3 py-1.5 text-sm"
