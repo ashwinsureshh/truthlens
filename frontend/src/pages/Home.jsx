@@ -28,12 +28,12 @@ const EXAMPLE_URLS = [
     url: "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope",
   },
   {
-    label: "🟢 BBC News",
-    url: "https://www.bbc.com/news/science-environment-62885150",
+    label: "🟢 Reuters",
+    url: "https://en.wikipedia.org/wiki/Climate_change",
   },
   {
-    label: "🔴 The Onion",
-    url: "https://www.theonion.com/scientists-warn-that-the-earth-is-slowly-drifting-out-1850923456",
+    label: "🔴 Conspiracy",
+    url: "https://en.wikipedia.org/wiki/Moon_landing_conspiracy_theories",
   },
 ]
 
