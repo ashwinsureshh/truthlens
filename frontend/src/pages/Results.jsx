@@ -122,41 +122,37 @@ export default function Results() {
       >
 
         {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <Link
-            to="/"
-            className="btn-outline px-3 py-1.5 text-sm gap-1.5"
-          >
+        <div className="flex items-center justify-between gap-2">
+          <Link to="/" className="btn-outline px-3 py-1.5 text-sm shrink-0">
             ← Back
           </Link>
-          <div className="flex items-center gap-2">
-            <Link to="/" className="btn-outline px-3 py-1.5 text-sm">
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {/* + New — hidden on smallest screens */}
+            <Link to="/" className="hidden sm:inline-flex btn-outline px-3 py-1.5 text-sm">
               + New
             </Link>
-            <button
-              onClick={handleShare}
-              className="btn-outline px-3 py-1.5 text-sm"
-            >
-              Share
+            {/* Share */}
+            <button onClick={handleShare} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
+              </svg>
+              <span className="hidden sm:inline">Share</span>
             </button>
-            <Link
-              to={`/report/${id}`}
-              className="btn-outline px-3 py-1.5 text-sm"
-            >
-              Report Card
+            {/* Report Card */}
+            <Link to={`/report/${id}`} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <span className="hidden sm:inline">Report</span>
             </Link>
-            <button
-              onClick={() => window.print()}
-              className="btn-outline px-3 py-1.5 text-sm"
-            >
-              Export
+            {/* Export */}
+            <button onClick={() => window.print()} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="6 9 12 15 18 9"/>
+              </svg>
+              <span className="hidden sm:inline">Export</span>
             </button>
-            <span
-              className="text-xs font-mono ml-1"
-              style={{ color: "var(--text-3)" }}
-            >
-              #{id}
-            </span>
+            <span className="text-xs font-mono" style={{ color: "var(--text-3)" }}>#{id}</span>
           </div>
         </div>
 
