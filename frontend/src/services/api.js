@@ -1,7 +1,9 @@
 import axios from "axios"
 
+// Use relative /api when no explicit URL set — works through nginx proxy
+// This means the same build works locally, via tunnel, and on Vercel
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5001/api",
+  baseURL: import.meta.env.VITE_API_URL || "/api",
 })
 
 api.interceptors.request.use((config) => {
