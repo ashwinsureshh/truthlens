@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TruthLens</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" width="28" height="28">
+          <circle cx="20" cy="20" r="20" fill="#6366f1"/>
+          <circle cx="20" cy="20" r="19" fill="#1e1b4b"/>
+          <path d="M14.5 14.5 A8 8 0 0 0 14.5 25.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <path d="M11.5 11.5 A12 12 0 0 0 11.5 28.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <path d="M8.5 8.5 A16 16 0 0 0 8.5 31.5" stroke="white" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+          <path d="M16 20 C18 15.5 26 15.5 30 20 C26 24.5 18 24.5 16 20 Z" fill="white"/>
+          <circle cx="25" cy="20" r="3.2" fill="#1e1b4b"/>
+          <circle cx="26" cy="18.8" r="1.1" fill="white"/>
+        </svg>
+        <div>
+          <span class="logo-name">TruthLens</span>
+          <span class="logo-sub">AI Credibility</span>
+        </div>
+      </div>
+      <button id="settingsBtn" class="icon-btn" title="Settings">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Main view -->
+    <div id="mainView">
+      <!-- Mode tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="url">Current Page</button>
+        <button class="tab" data-tab="text">Selected Text</button>
+      </div>
+
+      <!-- URL mode -->
+      <div id="urlMode" class="mode-panel">
+        <div class="current-url-box">
+          <div class="url-icon">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/>
+            </svg>
+          </div>
+          <span id="currentUrl" class="url-text">Loading...</span>
+        </div>
+        <button id="analyzeUrlBtn" class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
+          Analyze This Page
+        </button>
+      </div>
+
+      <!-- Text mode -->
+      <div id="textMode" class="mode-panel hidden">
+        <div id="selectedTextBox" class="selected-text-box">
+          <p id="selectedTextPreview" class="selected-preview">Select text on the page, then click below</p>
+        </div>
+        <button id="analyzeTextBtn" class="btn-primary" disabled>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
+          Analyze Selected Text
+        </button>
+        <button id="refreshSelectionBtn" class="btn-secondary">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/>
+          </svg>
+          Refresh Selection
+        </button>
+      </div>
+
+      <!-- Loading state -->
+      <div id="loadingState" class="hidden">
+        <div class="loading-content">
+          <div class="spinner"></div>
+          <div>
+            <p class="loading-title">Analyzing...</p>
+            <p id="loadingStep" class="loading-step">Fetching content</p>
+          </div>
+        </div>
+        <div class="loading-steps-bar">
+          <div id="loadingProgress" class="loading-progress"></div>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div id="errorState" class="hidden">
+        <div class="error-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
+          </svg>
+          <span id="errorMsg">Something went wrong.</span>
+        </div>
+        <button id="retryBtn" class="btn-secondary">Try Again</button>
+      </div>
+
+      <!-- Result state -->
+      <div id="resultState" class="hidden">
+        <!-- Score gauge -->
+        <div class="result-header">
+          <div class="gauge-wrapper">
+            <svg viewBox="0 0 120 120" class="gauge-svg" id="gaugeSvg">
+              <circle cx="60" cy="60" r="44" fill="none" stroke="rgba(148,163,184,0.15)"
+                stroke-width="6" stroke-dasharray="207.3 276.5" stroke-linecap="round"
+                transform="rotate(-225 60 60)"/>
+              <circle cx="60" cy="60" r="44" fill="none" stroke="#6366f1"
+                stroke-width="6" stroke-dasharray="0 276.5" stroke-linecap="round"
+                transform="rotate(-225 60 60)" id="gaugeArc"/>
+            </svg>
+            <div class="gauge-center">
+              <span id="gaugeScore" class="gauge-score">0</span>
+              <span class="gauge-unit">/100</span>
+            </div>
+          </div>
+          <div class="result-info">
+            <span id="verdictBadge" class="verdict-badge">—</span>
+            <p id="sentenceCount" class="sentence-count">— sentences</p>
+            <p id="confidenceLevel" class="confidence-level">—</p>
+          </div>
+        </div>
+
+        <!-- Verdict message -->
+        <div id="verdictMsg" class="verdict-msg"></div>
+
+        <!-- Dimension bars -->
+        <div class="dims">
+          <p class="dims-title">Dimensions <span class="dims-sub">lower = better</span></p>
+          <div class="dim-list" id="dimList"></div>
+        </div>
+
+        <!-- Top red flags -->
+        <div id="redFlagsSection" class="red-flags-section hidden">
+          <p class="red-flags-title">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+              <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            Red Flags
+          </p>
+          <div id="redFlagsList" class="red-flags-list"></div>
+        </div>
+
+        <!-- Actions -->
+        <div class="result-actions">
+          <button id="viewFullBtn" class="btn-primary">
+            View Full Report →
+          </button>
+          <button id="analyzeAgainBtn" class="btn-secondary">
+            Analyze Again
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings view -->
+    <div id="settingsView" class="hidden">
+      <div class="settings-header">
+        <button id="backBtn" class="icon-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M19 12H5M12 5l-7 7 7 7"/>
+          </svg>
+        </button>
+        <span class="settings-title">Settings</span>
+      </div>
+      <div class="settings-body">
+        <div class="setting-group">
+          <label class="setting-label">API URL</label>
+          <input type="text" id="apiUrlInput" class="setting-input" placeholder="https://your-tunnel.trycloudflare.com" />
+          <p class="setting-hint">Your TruthLens server URL (without /api)</p>
+        </div>
+        <button id="saveSettingsBtn" class="btn-primary">Save Settings</button>
+        <div id="settingsSaved" class="settings-saved hidden">✓ Saved!</div>
+      </div>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
