@@ -25,4 +25,13 @@ def scrape_url(url: str) -> tuple[str, str | None]:
 
         return text, None
     except Exception as e:
-        return "", f"Failed to scrape URL: {str(e)}"
+        err = str(e).lower()
+        if "connection" in err or "adapter" in err or "invalid" in err or "no connection" in err:
+            return "", "Invalid URL. Please enter a valid web address starting with https://"
+        if "timeout" in err:
+            return "", "Request timed out. The site may be slow or unreachable."
+        if "403" in err or "401" in err or "blocked" in err or "forbidden" in err:
+            return "", "This site blocks automated access. Try copying the article text and using Paste Text mode instead."
+        if "404" in err:
+            return "", "Page not found. Please check the URL and try again."
+        return "", "Could not access this URL. Try copying the article text and using Paste Text mode instead."

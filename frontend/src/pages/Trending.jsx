@@ -63,7 +63,19 @@ export default function Trending() {
     )
   }
 
-  if (!data || data.total === 0) {
+  if (!data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg)" }}>
+        <div className="card p-14 text-center max-w-sm w-full">
+          <p className="text-sm font-medium mb-2" style={{ color: "var(--text)" }}>Could not load data</p>
+          <p className="text-xs mb-6" style={{ color: "var(--text-3)" }}>Make sure the backend is running.</p>
+          <button onClick={fetchData} className="btn-outline px-5 py-2 text-sm">Retry</button>
+        </div>
+      </div>
+    )
+  }
+
+  if (data.total === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4" style={{ background: "var(--bg)" }}>
         <div className="card p-14 text-center max-w-sm w-full">
