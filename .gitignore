@@ -24,3 +24,4 @@ model/data/
 
 # OS
 .DS_Store
+.env
