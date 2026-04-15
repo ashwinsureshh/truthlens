@@ -7,21 +7,36 @@ const TOOLS = [
   {
     key: "truthlens",
     name: "TruthLens",
-    description: "Fine-tuned RoBERTa on LIAR dataset. Sentence-level scoring with LIME explainability.",
-    strengths: ["Sentence-level granularity", "Explainable AI (LIME)", "Multi-dimensional scoring"],
+    description: "Fine-tuned RoBERTa on LIAR dataset. Sentence-level scoring across 4 dimensions.",
+    strengths: ["Sentence-level granularity", "4-axis scoring", "Open source"],
+    badge: "This analysis",
+    color: "#6366f1",
   },
   {
     key: "claimbuster",
     name: "ClaimBuster",
-    description: "SVM-based claim detection trained on political statements. Document-level scoring.",
+    description: "SVM-based claim detection trained on political statements. Document-level scoring only.",
     strengths: ["Fast inference", "Political claim focus", "Public API"],
+    badge: "Document-level",
+    color: "#f59e0b",
   },
   {
     key: "google",
     name: "Google Fact Check",
-    description: "Knowledge graph lookup against verified fact-check databases. Returns matched claims.",
+    description: "Knowledge graph lookup against verified fact-check databases. Requires exact claim match.",
     strengths: ["Broad database", "Source attribution", "Claim matching"],
+    badge: "Lookup-based",
+    color: "#10b981",
   },
+]
+
+const FEATURE_COMPARISON = [
+  { feature: "Sentence-level analysis",  tl: true,  cb: false, gf: false },
+  { feature: "Multi-dimensional scoring", tl: true,  cb: false, gf: false },
+  { feature: "Works on any text",         tl: true,  cb: true,  gf: false },
+  { feature: "Explainable output",        tl: true,  cb: false, gf: true  },
+  { feature: "Real-time analysis",        tl: true,  cb: true,  gf: false },
+  { feature: "No API key required",       tl: true,  cb: false, gf: false },
 ]
 
 function ScoreBar({ score, delay = 0 }) {
@@ -86,10 +101,6 @@ export default function Benchmark() {
   )
 
   const tl = analysis?.overall_score ?? 0
-  const cb = benchmark?.claimbuster_score ?? tl + 8
-  const gf = benchmark?.google_score     ?? tl - 5
-  const scores = { truthlens: tl, claimbuster: cb, google: gf }
-  const winner = Object.entries(scores).sort((a, b) => a[1] - b[1])[0][0]
 
   return (
     <div className="min-h-screen" style={{ background: "var(--bg)" }}>
@@ -125,91 +136,81 @@ export default function Benchmark() {
           <span
             className="text-xs px-3 py-1 rounded-md"
             style={{
-              color: "var(--text-3)",
-              border: "1px solid var(--border)",
-              background: "var(--surface-2)"
+              color: "#6366f1",
+              border: "1px solid rgba(99,102,241,0.3)",
+              background: "rgba(99,102,241,0.08)"
             }}
           >
-            Stub data
+            Methodology
           </span>
+        </div>
+
+        {/* TruthLens score */}
+        <div className="card p-5 flex items-center gap-6">
+          <div>
+            <p className="text-xs mb-1" style={{ color: "var(--text-3)" }}>TruthLens Score</p>
+            <p className="text-3xl font-bold font-mono" style={{ color: tl < 45 ? "#10b981" : tl < 62 ? "#f59e0b" : "#ef4444" }}>{tl}</p>
+          </div>
+          <div className="flex-1">
+            <ScoreBar score={tl} />
+          </div>
         </div>
 
         {/* Tool cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {TOOLS.map((tool, i) => {
-            const isWinner = tool.key === winner
-            return (
-              <motion.div
-                key={tool.key}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-                className="card p-5 flex flex-col gap-4"
-                style={isWinner ? { borderColor: "#6366f1" } : {}}
-              >
-                {isWinner && (
-                  <span
-                    className="text-xs font-medium px-2 py-0.5 rounded-md self-end"
-                    style={{
-                      color: "#6366f1",
-                      background: "rgba(99,102,241,0.1)",
-                      border: "1px solid rgba(99,102,241,0.3)"
-                    }}
-                  >
-                    Most credible
-                  </span>
-                )}
-                <div>
-                  <h3 className="text-sm font-semibold mb-2" style={{ color: "var(--text)" }}>{tool.name}</h3>
-                  <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>{tool.description}</p>
-                </div>
-                <ScoreBar score={scores[tool.key]} delay={0.2 + i * 0.1} />
-                <div className="space-y-1.5 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
-                  <p className="text-xs font-medium mb-2" style={{ color: "var(--text-3)" }}>Strengths</p>
-                  {tool.strengths.map((s) => (
-                    <div key={s} className="flex items-center gap-2 text-xs" style={{ color: "var(--text-2)" }}>
-                      <span
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{ background: "#6366f1" }}
-                      />
-                      {s}
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )
-          })}
+          {TOOLS.map((tool, i) => (
+            <motion.div
+              key={tool.key}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: i * 0.08 }}
+              className="card p-5 flex flex-col gap-4"
+              style={tool.key === "truthlens" ? { borderColor: "#6366f1" } : {}}
+            >
+              <div className="flex items-start justify-between">
+                <h3 className="text-sm font-semibold" style={{ color: "var(--text)" }}>{tool.name}</h3>
+                <span className="text-xs px-2 py-0.5 rounded-md" style={{ color: tool.color, background: tool.color + "18", border: `1px solid ${tool.color}40` }}>
+                  {tool.badge}
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>{tool.description}</p>
+              <div className="space-y-1.5 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
+                <p className="text-xs font-medium mb-2" style={{ color: "var(--text-3)" }}>Strengths</p>
+                {tool.strengths.map((s) => (
+                  <div key={s} className="flex items-center gap-2 text-xs" style={{ color: "var(--text-2)" }}>
+                    <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: tool.color }} />
+                    {s}
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        {/* Score comparison */}
+        {/* Feature comparison table */}
         <div className="card p-6">
-          <p className="text-xs font-medium mb-6" style={{ color: "var(--text-3)" }}>
-            Score Comparison
-          </p>
-          <div className="space-y-5">
-            {TOOLS.map((tool) => {
-              const pct   = Math.min(100, Math.max(0, scores[tool.key]))
-              const color = pct < 45 ? "#10b981" : pct < 62 ? "#f59e0b" : "#ef4444"
-              return (
-                <div key={tool.key} className="flex items-center gap-4">
-                  <span className="text-sm font-medium w-36 shrink-0" style={{ color: "var(--text-2)" }}>
-                    {tool.name}
-                  </span>
-                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: pct + "%" }}
-                      transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-                      className="h-full rounded-full"
-                      style={{ background: color }}
-                    />
-                  </div>
-                  <span className="text-sm font-bold font-mono w-8 text-right" style={{ color }}>
-                    {pct}
-                  </span>
-                </div>
-              )
-            })}
+          <p className="text-xs font-medium mb-5" style={{ color: "var(--text-3)" }}>Feature Comparison</p>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr style={{ borderBottom: "1px solid var(--border)" }}>
+                  <th className="text-left pb-3 text-xs font-medium" style={{ color: "var(--text-3)" }}>Feature</th>
+                  <th className="text-center pb-3 text-xs font-medium" style={{ color: "#6366f1" }}>TruthLens</th>
+                  <th className="text-center pb-3 text-xs font-medium" style={{ color: "var(--text-3)" }}>ClaimBuster</th>
+                  <th className="text-center pb-3 text-xs font-medium" style={{ color: "var(--text-3)" }}>Google FC</th>
+                </tr>
+              </thead>
+              <tbody>
+                {FEATURE_COMPARISON.map(({ feature, tl, cb, gf }) => (
+                  <tr key={feature} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td className="py-2.5 text-xs" style={{ color: "var(--text-2)" }}>{feature}</td>
+                    <td className="py-2.5 text-center">{tl ? "✅" : "❌"}</td>
+                    <td className="py-2.5 text-center">{cb ? "✅" : "❌"}</td>
+                    <td className="py-2.5 text-center">{gf ? "✅" : "❌"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
