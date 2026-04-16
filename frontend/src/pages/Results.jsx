@@ -118,7 +118,7 @@ export default function Results() {
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        className="relative max-w-5xl mx-auto px-4 py-10 space-y-4"
+        className="relative max-w-7xl mx-auto px-4 py-10 space-y-5"
       >
 
         {/* Top bar */}
@@ -157,14 +157,14 @@ export default function Results() {
         </div>
 
         {/* Header card */}
-        <div className="card p-5">
+        <div className="card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-semibold mb-0.5" style={{ color: "var(--text)" }}>
+              <h2 className="text-xl font-semibold mb-1" style={{ color: "var(--text)" }}>
                 Analysis Complete
               </h2>
               <div className="flex flex-wrap items-center gap-2 mt-1">
-                <span className="text-xs" style={{ color: "var(--text-3)" }}>
+                <span className="text-sm" style={{ color: "var(--text-3)" }}>
                   {sentence_count ?? "—"} sentences analyzed
                 </span>
                 {confidenceBadge && (
@@ -212,10 +212,10 @@ export default function Results() {
               {verdictInfo.icon}
             </span>
             <div>
-              <p className="text-xs font-semibold mb-0.5" style={{ color: verdictInfo.color }}>
+              <p className="text-sm font-semibold mb-0.5" style={{ color: verdictInfo.color }}>
                 {verdictInfo.title}
               </p>
-              <p className="text-xs leading-relaxed" style={{ color: "var(--text-2)" }}>
+              <p className="text-sm leading-relaxed" style={{ color: "var(--text-2)" }}>
                 {verdictInfo.desc}
               </p>
             </div>
@@ -230,17 +230,17 @@ export default function Results() {
           transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
         >
           <div className="card p-6 flex flex-col items-center">
-            <p className="text-xs font-medium mb-6" style={{ color: "var(--text-3)" }}>
+            <p className="text-sm font-medium mb-6" style={{ color: "var(--text-3)" }}>
               Overall Credibility
             </p>
             <CredibilityGauge score={overall_score} />
           </div>
           <div className="card p-6 flex flex-col">
             <div className="flex items-center justify-between mb-3">
-              <p className="text-xs font-medium" style={{ color: "var(--text-3)" }}>
+              <p className="text-sm font-medium" style={{ color: "var(--text-3)" }}>
                 Dimension Breakdown
               </p>
-              <span className="text-xs" style={{ color: "var(--text-3)" }}>lower = better</span>
+              <span className="text-sm" style={{ color: "var(--text-3)" }}>lower = better</span>
             </div>
             <RadarChart scores={scores} />
             <div className="grid grid-cols-2 gap-2 mt-4">
@@ -259,10 +259,10 @@ export default function Results() {
                     transition={{ delay: 0.4 + i * 0.08, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
                     whileHover={{ scale: 1.03, borderColor: "var(--border-strong)" }}
                   >
-                    <span className="text-xs font-medium" style={{ color: "var(--text-2)" }}>
+                    <span className="text-sm font-medium" style={{ color: "var(--text-2)" }}>
                       {DIM_LABELS[key] ?? key}
                     </span>
-                    <span className="text-xs font-bold font-mono" style={{ color: scoreColor }}>
+                    <span className="text-sm font-bold font-mono" style={{ color: scoreColor }}>
                       {val?.toFixed(0)}
                     </span>
                   </motion.div>

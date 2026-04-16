@@ -41,10 +41,10 @@ export default function AnnotatedArticle({ sentences }) {
         style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
       >
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-medium" style={{ color: "var(--text-2)" }}>
+          <span className="text-sm font-medium" style={{ color: "var(--text-2)" }}>
             Sentence breakdown
           </span>
-          <span className="text-xs" style={{ color: "var(--text-3)" }}>
+          <span className="text-sm" style={{ color: "var(--text-3)" }}>
             {sentences.length} total
           </span>
         </div>
@@ -79,8 +79,8 @@ export default function AnnotatedArticle({ sentences }) {
           ].map(({ label, count, color }) => (
             <div key={label} className="flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full" style={{ background: color }} />
-              <span className="text-xs font-semibold font-mono" style={{ color }}>{count}</span>
-              <span className="text-xs" style={{ color: "var(--text-3)" }}>{label}</span>
+              <span className="text-sm font-semibold font-mono" style={{ color }}>{count}</span>
+              <span className="text-sm" style={{ color: "var(--text-3)" }}>{label}</span>
             </div>
           ))}
         </div>
@@ -135,14 +135,14 @@ export default function AnnotatedArticle({ sentences }) {
 
       {/* Annotated article */}
       <div>
-        <p className="text-xs font-medium mb-3" style={{ color: "var(--text-3)" }}>
+        <p className="text-sm font-medium mb-3" style={{ color: "var(--text-3)" }}>
           Full article — click any highlighted sentence for details
         </p>
         <div
-          className="rounded-xl p-5"
+          className="rounded-xl p-6"
           style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
         >
-          <p className="text-sm leading-8" style={{ color: "var(--text-2)" }}>
+          <p className="text-base leading-9" style={{ color: "var(--text-2)" }}>
             {sentences.map((s, i) => {
               const pct      = s.score ?? 0
               const isCred   = pct < 45
@@ -197,7 +197,7 @@ export default function AnnotatedArticle({ sentences }) {
                         initial={{ opacity: 0, scaleY: 0.9 }}
                         animate={{ opacity: 1, scaleY: 1 }}
                         exit={{ opacity: 0, scaleY: 0.9 }}
-                        className="block mt-1 mb-2 rounded-lg px-3 py-2 text-xs leading-relaxed"
+                        className="block mt-1 mb-2 rounded-lg px-3 py-2 text-sm leading-relaxed"
                         style={{
                           background: isUncert ? "rgba(245,158,11,0.08)" : "rgba(239,68,68,0.08)",
                           border: `1px solid ${isUncert ? "rgba(245,158,11,0.2)" : "rgba(239,68,68,0.2)"}`,
