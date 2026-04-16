@@ -22,9 +22,9 @@ export default function Navbar() {
   return (
     <>
       {/* Floating pill nav — pointer-events-none on wrapper so content behind is clickable */}
-      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none" style={{ paddingTop: "12px", paddingLeft: "16px", paddingRight: "16px" }}>
+      <div className="fixed top-0 left-0 right-0 z-50 flex justify-center pointer-events-none" style={{ paddingTop: "12px", paddingLeft: "24px", paddingRight: "24px" }}>
         <motion.nav
-          className="pointer-events-auto flex items-center h-12 px-4 gap-1"
+          className="pointer-events-auto flex items-center h-12 px-6 gap-1 w-full max-w-5xl"
           animate={{
             background: scrolled
               ? "rgba(5,5,8,0.92)"
