@@ -20,22 +20,23 @@
 }
 
 html.dark {
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --surface-2: #0f172a;
-  --border: #334155;
-  --border-strong: #475569;
-  --text: #f1f5f9;
-  --text-2: #94a3b8;
-  --text-3: #475569;
-  --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.15);
-  --shadow-hover: 0 4px 12px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.25);
-  --nav-bg: rgba(15,23,42,0.85);
+  --bg: #050508;
+  --surface: #0c0c12;
+  --surface-2: #111118;
+  --border: #1c1c2a;
+  --border-strong: #2e2e42;
+  --text: #f0f0f5;
+  --text-2: #8585a0;
+  --text-3: #44444f;
+  --shadow: 0 1px 3px rgba(0,0,0,0.5), 0 4px 16px rgba(0,0,0,0.3);
+  --shadow-hover: 0 4px 24px rgba(0,0,0,0.7), 0 8px 48px rgba(0,0,0,0.5);
+  --nav-bg: rgba(5,5,8,0.8);
 }
 
 /* ── Smooth transitions ──────────────────── */
 html {
   transition: color 0.3s ease, background-color 0.3s ease;
+  scroll-padding-top: 80px;
 }
 
 * { box-sizing: border-box; }
@@ -102,6 +103,9 @@ body {
   background: #4f46e5;
   box-shadow: 0 4px 12px rgba(99,102,241,0.35);
 }
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
 .btn-primary:disabled {
   opacity: 0.4;
   cursor: not-allowed;
@@ -141,6 +145,9 @@ body {
   background: var(--surface-2);
   border-color: var(--border-strong);
   color: var(--text);
+}
+.btn-outline:active:not(:disabled) {
+  transform: scale(0.97);
 }
 .btn-outline:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -248,6 +255,175 @@ body {
 ::-webkit-scrollbar-track   { background: var(--bg); }
 ::-webkit-scrollbar-thumb   { background: var(--border-strong); border-radius: 2px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+/* ── Hero display typography ─────────────── */
+.hero-display {
+  font-size: clamp(36px, 9vw, 108px);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 0.92;
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+/* ── Section title ───────────────────────── */
+.section-title {
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+
+/* ── Mobile overrides ────────────────────── */
+@media (max-width: 640px) {
+  .hero-display {
+    font-size: clamp(28px, 10vw, 48px);
+    letter-spacing: -0.03em;
+    line-height: 1.0;
+  }
+  .section-title {
+    font-size: clamp(22px, 7vw, 32px);
+  }
+  .btn-hero-primary {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  .btn-hero-ghost {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+  /* Hide heavy background animations on mobile */
+  .bg-noise-layer {
+    display: none;
+  }
+  .bg-orb-b,
+  .bg-orb-c {
+    display: none;
+  }
+}
+
+/* ── Section label (eyebrow) ─────────────── */
+.section-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #6366f1;
+  display: inline-block;
+  margin-bottom: 16px;
+}
+
+/* ── Hero CTA buttons ────────────────────── */
+.btn-hero-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 32px;
+  background: #6366f1;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 100px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  font-family: "Inter", system-ui, sans-serif;
+}
+.btn-hero-primary:hover {
+  background: #4f46e5;
+  box-shadow: 0 0 50px rgba(99,102,241,0.45), 0 8px 28px rgba(99,102,241,0.3);
+}
+.btn-hero-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-hero-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 15px 28px;
+  background: transparent;
+  color: rgba(240,240,245,0.6);
+  font-size: 15px;
+  font-weight: 500;
+  border-radius: 100px;
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: "Inter", system-ui, sans-serif;
+}
+.btn-hero-ghost:hover {
+  background: rgba(255,255,255,0.05);
+  color: rgba(240,240,245,0.9);
+  border-color: rgba(255,255,255,0.2);
+}
+
+/* ── Ambient orb ─────────────────────────── */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(100px);
+  will-change: transform;
+}
+
+/* ── Feature card ────────────────────────── */
+.feature-card {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 20px;
+  padding: 32px;
+  transition: border-color 0.35s ease, transform 0.35s ease;
+}
+html.dark .feature-card:hover {
+  border-color: rgba(99,102,241,0.3);
+}
+
+/* ── Spotlight card ──────────────────────── */
+.spotlight-wrap {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+/* ── Scroll fade-up ──────────────────────── */
+.fade-section {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.fade-section.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── Gradient text ───────────────────────── */
+.gradient-text {
+  background: linear-gradient(135deg, #818cf8 0%, #c4b5fd 45%, #6366f1 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ── Skeleton shimmer ────────────────────── */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface-2) 25%,
+    var(--border) 50%,
+    var(--surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
 
 /* ── Border beam (kept for backward compat) */
 @keyframes beam {

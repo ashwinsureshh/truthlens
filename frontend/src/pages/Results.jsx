@@ -198,12 +198,15 @@ export default function Results() {
           </div>
 
           {/* Verdict explanation */}
-          <div
+          <motion.div
             className="mt-4 flex items-start gap-3 rounded-xl px-4 py-3"
             style={{
               background: `${verdictInfo.color}10`,
               border: `1px solid ${verdictInfo.color}30`,
             }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
           >
             <span className="text-base font-bold shrink-0 mt-0.5" style={{ color: verdictInfo.color }}>
               {verdictInfo.icon}
@@ -216,11 +219,16 @@ export default function Results() {
                 {verdictInfo.desc}
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
 
         {/* Score + Radar grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+        >
           <div className="card p-6 flex flex-col items-center">
             <p className="text-xs font-medium mb-6" style={{ color: "var(--text-3)" }}>
               Overall Credibility
@@ -236,16 +244,20 @@ export default function Results() {
             </div>
             <RadarChart scores={scores} />
             <div className="grid grid-cols-2 gap-2 mt-4">
-              {Object.entries(scores ?? {}).map(([key, val]) => {
+              {Object.entries(scores ?? {}).map(([key, val], i) => {
                 const scoreColor = val < 25 ? "#10b981" : val < 50 ? "#f59e0b" : "#ef4444"
                 return (
-                  <div
+                  <motion.div
                     key={key}
                     className="flex items-center justify-between rounded-lg px-3 py-2"
                     style={{
                       background: "var(--surface-2)",
                       border: "1px solid var(--border)"
                     }}
+                    initial={{ opacity: 0, x: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ delay: 0.4 + i * 0.08, duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ scale: 1.03, borderColor: "var(--border-strong)" }}
                   >
                     <span className="text-xs font-medium" style={{ color: "var(--text-2)" }}>
                       {DIM_LABELS[key] ?? key}
@@ -253,12 +265,12 @@ export default function Results() {
                     <span className="text-xs font-bold font-mono" style={{ color: scoreColor }}>
                       {val?.toFixed(0)}
                     </span>
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Tabs panel */}
         <div className="card overflow-hidden">
@@ -267,13 +279,16 @@ export default function Results() {
             style={{ borderBottom: "1px solid var(--border)" }}
           >
             {TABS.map((t) => (
-              <button
+              <motion.button
                 key={t}
                 onClick={() => setTab(t)}
-                className="px-6 py-3.5 text-sm font-medium relative transition-all duration-200"
+                className="px-6 py-3.5 text-sm font-medium relative"
                 style={{
                   color: tab === t ? "var(--text)" : "var(--text-3)",
                 }}
+                whileHover={{ color: "var(--text)" }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ duration: 0.15 }}
               >
                 {t}
                 {tab === t && (
@@ -281,9 +296,10 @@ export default function Results() {
                     layoutId="tab-line"
                     className="absolute bottom-0 left-0 right-0 h-0.5"
                     style={{ background: "#6366f1" }}
+                    transition={{ type: "spring", stiffness: 500, damping: 40 }}
                   />
                 )}
-              </button>
+              </motion.button>
             ))}
             {tab === "Benchmark" && (
               <button

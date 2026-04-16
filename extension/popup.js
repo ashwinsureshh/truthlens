@@ -37,9 +37,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   document.getElementById("settingsBtn").addEventListener("click", () => showView("settings"))
   document.getElementById("backBtn").addEventListener("click", () => showView("main"))
   document.getElementById("saveSettingsBtn").addEventListener("click", saveSettings)
-  document.getElementById("viewFullBtn").addEventListener("click", () => {
+  document.getElementById("viewFullBtn").addEventListener("click", async () => {
     if (currentAnalysisId) {
-      chrome.tabs.create({ url: `${getApiBase().replace("/api", "")}/results/${currentAnalysisId}` })
+      const base = await getApiBase()
+      chrome.tabs.create({ url: `${base.replace("/api", "")}/results/${currentAnalysisId}` })
     }
   })
 
@@ -51,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ── Get API base ──────────────────────────────────────────────────────────────
 async function getApiBase() {
   const { apiUrl } = await chrome.storage.local.get("apiUrl")
-  return (apiUrl || "http://localhost").replace(/\/$/, "") + "/api"
+  return (apiUrl || "https://truthlensai.me").replace(/\/$/, "") + "/api"
 }
 
 // ── Refresh selected text ─────────────────────────────────────────────────────

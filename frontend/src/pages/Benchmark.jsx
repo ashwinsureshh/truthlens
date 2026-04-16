@@ -190,23 +190,23 @@ export default function Benchmark() {
         {/* Feature comparison table */}
         <div className="card p-6">
           <p className="text-xs font-medium mb-5" style={{ color: "var(--text-3)" }}>Feature Comparison</p>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="overflow-x-auto -mx-1">
+            <table className="w-full text-sm" style={{ minWidth: "360px" }}>
               <thead>
                 <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                  <th className="text-left pb-3 text-xs font-medium" style={{ color: "var(--text-3)" }}>Feature</th>
-                  <th className="text-center pb-3 text-xs font-medium" style={{ color: "#6366f1" }}>TruthLens</th>
-                  <th className="text-center pb-3 text-xs font-medium" style={{ color: "var(--text-3)" }}>ClaimBuster</th>
-                  <th className="text-center pb-3 text-xs font-medium" style={{ color: "var(--text-3)" }}>Google FC</th>
+                  <th className="text-left pb-3 text-xs font-medium pr-3" style={{ color: "var(--text-3)" }}>Feature</th>
+                  <th className="text-center pb-3 text-xs font-medium whitespace-nowrap px-3" style={{ color: "#6366f1" }}>TruthLens</th>
+                  <th className="text-center pb-3 text-xs font-medium whitespace-nowrap px-3" style={{ color: "var(--text-3)" }}>ClaimBuster</th>
+                  <th className="text-center pb-3 text-xs font-medium whitespace-nowrap px-3" style={{ color: "var(--text-3)" }}>Google FC</th>
                 </tr>
               </thead>
               <tbody>
                 {FEATURE_COMPARISON.map(({ feature, tl, cb, gf }) => (
                   <tr key={feature} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td className="py-2.5 text-xs" style={{ color: "var(--text-2)" }}>{feature}</td>
-                    <td className="py-2.5 text-center">{tl ? "✅" : "❌"}</td>
-                    <td className="py-2.5 text-center">{cb ? "✅" : "❌"}</td>
-                    <td className="py-2.5 text-center">{gf ? "✅" : "❌"}</td>
+                    <td className="py-2.5 text-xs pr-3" style={{ color: "var(--text-2)" }}>{feature}</td>
+                    <td className="py-2.5 text-center text-base px-3">{tl ? "✅" : "❌"}</td>
+                    <td className="py-2.5 text-center text-base px-3">{cb ? "✅" : "❌"}</td>
+                    <td className="py-2.5 text-center text-base px-3">{gf ? "✅" : "❌"}</td>
                   </tr>
                 ))}
               </tbody>
