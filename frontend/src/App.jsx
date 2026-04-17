@@ -16,6 +16,7 @@ import Trending   from "./pages/Trending"
 import ReportCard from "./pages/ReportCard"
 import NotFound  from "./pages/NotFound"
 import Navbar     from "./components/ui/Navbar"
+import CursorGlow from "./components/ui/CursorGlow"
 
 export const ThemeContext = createContext({ dark: true, toggle: () => {} })
 export const useTheme = () => useContext(ThemeContext)
@@ -44,6 +45,7 @@ export default function App() {
     <ThemeContext.Provider value={{ dark, toggle }}>
       <BrowserRouter>
         <ScrollToTop />
+        <CursorGlow />
         <div
           className="transition-colors duration-300 min-h-screen"
           style={{ background: "var(--bg)" }}
