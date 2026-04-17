@@ -248,7 +248,7 @@ export default function Trending() {
                             #{a.id} · {timeAgo}
                           </p>
                           <p className="text-sm truncate" style={{ color: "var(--text-2)" }}>
-                            {a.source_url || "Text input"}
+                            {a.source_url || (a.snippet ? `"${a.snippet}…"` : "Text input")}
                           </p>
                         </div>
                       </div>

@@ -345,23 +345,26 @@ const LOADING_STEPS = ["Fetching content", "Parsing sentences", "Analyzing with 
 
 const EXAMPLES = [
   {
-    label: "🔴 Conspiracy",
+    label: "Conspiracy",
+    accent: "#ef4444",
     text: "The moon landing was completely staged by NASA and Hollywood directors. Astronauts never actually left Earth's atmosphere. The footage was filmed in a secret desert studio and the entire mission was fabricated to win the space race against the Soviet Union.",
   },
   {
-    label: "🟡 Misleading",
+    label: "Misleading",
+    accent: "#f59e0b",
     text: "Scientists have confirmed that drinking bleach cures cancer overnight. The government has been hiding this miracle treatment for decades to protect pharmaceutical profits. Thousands of patients have already recovered using this secret method.",
   },
   {
-    label: "🟢 Credible",
+    label: "Credible",
+    accent: "#10b981",
     text: "NASA's Apollo 11 mission successfully landed astronauts Neil Armstrong and Buzz Aldrin on the Moon on July 20, 1969. The mission was the result of years of scientific research, engineering development, and thousands of hours of astronaut training.",
   },
 ]
 
 const EXAMPLE_URLS = [
-  { label: "🟢 Wikipedia", url: "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope" },
-  { label: "🟢 Reuters", url: "https://en.wikipedia.org/wiki/Climate_change" },
-  { label: "🔴 Conspiracy", url: "https://en.wikipedia.org/wiki/Moon_landing_conspiracy_theories" },
+  { label: "Wikipedia", accent: "#10b981", url: "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope" },
+  { label: "Reuters", accent: "#10b981", url: "https://en.wikipedia.org/wiki/Climate_change" },
+  { label: "Conspiracy", accent: "#ef4444", url: "https://en.wikipedia.org/wiki/Moon_landing_conspiracy_theories" },
 ]
 
 const FEATURES = [
@@ -769,17 +772,25 @@ export default function Home() {
                 <motion.button
                   key={ex.label}
                   onClick={() => setInput(ex.text || ex.url)}
-                  className="px-3 py-1 text-xs font-medium rounded-full"
+                  className="relative px-3 py-1.5 text-xs font-medium rounded-lg overflow-hidden flex items-center gap-2"
                   style={{
                     background: "rgba(255,255,255,0.04)",
                     border: "1px solid rgba(255,255,255,0.08)",
                     color: "var(--text-2)",
                     cursor: "pointer",
                   }}
-                  whileHover={{ scale: 1.05, background: "rgba(255,255,255,0.08)" }}
+                  whileHover={{ scale: 1.05, background: `${ex.accent}10` }}
                   whileTap={{ scale: 0.93 }}
                   transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 >
+                  {/* Glowing left accent stripe */}
+                  <span
+                    className="absolute left-0 top-0 bottom-0 w-0.5 rounded-l-lg"
+                    style={{
+                      background: ex.accent,
+                      boxShadow: `0 0 8px 2px ${ex.accent}`,
+                    }}
+                  />
                   {ex.label}
                 </motion.button>
               ))}

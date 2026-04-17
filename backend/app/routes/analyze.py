@@ -117,5 +117,5 @@ def get_trending():
         "this_week": recent,
         "avg_score": round(float(avg_score), 1),
         "distribution": {"credible": credible, "uncertain": uncertain, "suspicious": suspicious},
-        "recent": [{"id": a.id, "score": a.overall_score, "input_type": a.input_type, "source_url": a.source_url, "created_at": a.created_at.isoformat()} for a in recent_analyses]
+        "recent": [{"id": a.id, "score": a.overall_score, "input_type": a.input_type, "source_url": a.source_url, "created_at": a.created_at.isoformat(), "snippet": a.article_text[:80] if a.article_text else None} for a in recent_analyses]
     }), 200
