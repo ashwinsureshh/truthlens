@@ -95,7 +95,7 @@ export default function AnnotatedArticle({ sentences }) {
           style={{ background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.2)" }}
         >
           <div className="flex items-center gap-2 mb-3">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5">
+            <svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5">
               <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
@@ -139,13 +139,13 @@ export default function AnnotatedArticle({ sentences }) {
       {/* Annotated article */}
       <div>
         <p className="text-sm font-medium mb-3" style={{ color: "var(--text-3)" }}>
-          Full article — tap any highlighted sentence to learn more
+          Full article — click or press Enter on any highlighted sentence to learn more
         </p>
         <div
           className="rounded-xl p-6"
           style={{ background: "var(--surface-2)", border: "1px solid var(--border)" }}
         >
-          <p className="text-base leading-9" style={{ color: "var(--text-2)" }}>
+          <div className="text-base leading-9" style={{ color: "var(--text-2)" }}>
             {sentences.map((s, i) => {
               const pct      = s.score ?? 0
               const isCred   = pct < 45
@@ -164,7 +164,11 @@ export default function AnnotatedArticle({ sentences }) {
               return (
                 <span key={i} className="relative inline">
                   <span
+                    role={!isCred ? "button" : undefined}
+                    tabIndex={!isCred ? 0 : undefined}
+                    aria-expanded={!isCred ? isOpen : undefined}
                     onClick={() => !isCred && setExpanded(isOpen ? null : i)}
+                    onKeyDown={e => !isCred && (e.key === "Enter" || e.key === " ") && setExpanded(isOpen ? null : i)}
                     className={`rounded-sm transition-all duration-150 ${!isCred ? "cursor-pointer hover:brightness-110" : ""}`}
                     style={{
                       background: isOpen ? (isUncert ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)") : bgColor,
@@ -173,6 +177,11 @@ export default function AnnotatedArticle({ sentences }) {
                       padding: "1px 2px",
                     }}
                   >
+                    {!isCred && (
+                      <span aria-hidden="true" style={{ fontSize: "0.65em", marginRight: 2 }}>
+                        {isUncert ? "⚠" : "✕"}
+                      </span>
+                    )}
                     {s.sentence}
                   </span>
 
@@ -213,7 +222,7 @@ export default function AnnotatedArticle({ sentences }) {
                 </span>
               )
             })}
-          </p>
+          </div>
         </div>
       </div>
     </div>

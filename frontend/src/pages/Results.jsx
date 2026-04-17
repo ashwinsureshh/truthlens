@@ -32,7 +32,7 @@ export default function Results() {
   }
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
+    <div role="status" aria-live="polite" aria-label="Loading analysis" className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
       <div className="flex flex-col items-center gap-4">
         <div className="flex gap-1.5">
           <span className="dot-bounce w-2 h-2 rounded-full" style={{ background: "#6366f1" }} />
@@ -132,22 +132,22 @@ export default function Results() {
               + New
             </Link>
             {/* Share */}
-            <button onClick={handleShare} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <button aria-label="Share analysis" onClick={handleShare} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
+              <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/>
               </svg>
               <span className="hidden sm:inline">Share</span>
             </button>
             {/* Report Card */}
-            <Link to={`/report/${id}`} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <Link aria-label="View report card" to={`/report/${id}`} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
+              <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/>
               </svg>
               <span className="hidden sm:inline">Report</span>
             </Link>
             {/* Export */}
-            <button onClick={() => window.print()} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <button aria-label="Export as PDF" onClick={() => window.print()} className="btn-outline px-3 py-1.5 text-sm flex items-center gap-1.5">
+              <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polyline points="6 9 12 15 18 9"/>
               </svg>
               <span className="hidden sm:inline">Export</span>
@@ -246,6 +246,7 @@ export default function Results() {
             <div className="grid grid-cols-2 gap-2 mt-4">
               {Object.entries(scores ?? {}).map(([key, val], i) => {
                 const scoreColor = val < 25 ? "#10b981" : val < 50 ? "#f59e0b" : "#ef4444"
+                const riskText   = val < 25 ? "Low"    : val < 50 ? "Med"    : "High"
                 return (
                   <motion.div
                     key={key}
@@ -262,9 +263,12 @@ export default function Results() {
                     <span className="text-sm font-medium" style={{ color: "var(--text-2)" }}>
                       {DIM_LABELS[key] ?? key}
                     </span>
-                    <span className="text-sm font-bold font-mono" style={{ color: scoreColor }}>
-                      {val?.toFixed(0)}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-medium" style={{ color: "var(--text-3)" }}>{riskText}</span>
+                      <span className="text-sm font-bold font-mono" style={{ color: scoreColor }}>
+                        {val?.toFixed(0)}
+                      </span>
+                    </div>
                   </motion.div>
                 )
               })}
@@ -275,13 +279,24 @@ export default function Results() {
         {/* Tabs panel */}
         <div className="card overflow-hidden">
           <div
+            role="tablist"
+            aria-label="Analysis views"
             className="flex"
             style={{ borderBottom: "1px solid var(--border)" }}
           >
             {TABS.map((t) => (
               <motion.button
                 key={t}
+                role="tab"
+                aria-selected={tab === t}
+                aria-controls={`panel-${t}`}
+                id={`tab-${t}`}
                 onClick={() => setTab(t)}
+                onKeyDown={(e) => {
+                  const idx = TABS.indexOf(t)
+                  if (e.key === "ArrowRight") setTab(TABS[(idx + 1) % TABS.length])
+                  if (e.key === "ArrowLeft") setTab(TABS[(idx - 1 + TABS.length) % TABS.length])
+                }}
                 className="px-6 py-3.5 text-sm font-medium relative"
                 style={{
                   color: tab === t ? "var(--text)" : "var(--text-3)",
@@ -314,7 +329,7 @@ export default function Results() {
           <div className="p-6">
             <AnimatePresence mode="wait">
               {tab === "Overview" && (
-                <motion.div key="ov"
+                <motion.div key="ov" role="tabpanel" id="panel-Overview" aria-labelledby="tab-Overview"
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -322,7 +337,7 @@ export default function Results() {
                 </motion.div>
               )}
               {tab === "Waveform" && (
-                <motion.div key="wf"
+                <motion.div key="wf" role="tabpanel" id="panel-Waveform" aria-labelledby="tab-Waveform"
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -330,7 +345,7 @@ export default function Results() {
                 </motion.div>
               )}
               {tab === "Benchmark" && (
-                <motion.div key="bm"
+                <motion.div key="bm" role="tabpanel" id="panel-Benchmark" aria-labelledby="tab-Benchmark"
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                   transition={{ duration: 0.2 }}
                 >
@@ -349,16 +364,16 @@ export default function Results() {
             border: "1px solid var(--border)",
           }}
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5" style={{ color: "var(--text-3)" }}>
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5" style={{ color: "var(--text-3)" }}>
             <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
           </svg>
           <p className="text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
             <strong style={{ color: "var(--text-2)" }}>AI Analysis Disclaimer:</strong> TruthLens uses a fine-tuned RoBERTa model to estimate credibility.
             Results are probabilistic signals, not definitive verdicts. Always verify claims independently
             using trusted sources such as{" "}
-            <a href="https://www.snopes.com" target="_blank" rel="noopener noreferrer" style={{ color: "#6366f1" }}>Snopes</a>,{" "}
-            <a href="https://www.factcheck.org" target="_blank" rel="noopener noreferrer" style={{ color: "#6366f1" }}>FactCheck.org</a>, or{" "}
-            <a href="https://www.reuters.com/fact-check" target="_blank" rel="noopener noreferrer" style={{ color: "#6366f1" }}>Reuters Fact Check</a>.
+            <a href="https://www.snopes.com" target="_blank" rel="noopener noreferrer" aria-label="Snopes (opens in new tab)" style={{ color: "#6366f1" }}>Snopes</a>,{" "}
+            <a href="https://www.factcheck.org" target="_blank" rel="noopener noreferrer" aria-label="FactCheck.org (opens in new tab)" style={{ color: "#6366f1" }}>FactCheck.org</a>, or{" "}
+            <a href="https://www.reuters.com/fact-check" target="_blank" rel="noopener noreferrer" aria-label="Reuters Fact Check (opens in new tab)" style={{ color: "#6366f1" }}>Reuters Fact Check</a>.
           </p>
         </div>
 
@@ -411,7 +426,15 @@ function BenchmarkPreview({ score, id }) {
                 {pct}
               </span>
             </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "var(--border)" }}>
+            <div
+              role="progressbar"
+              aria-valuenow={pct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`${t.name} score: ${pct}`}
+              className="h-1.5 rounded-full overflow-hidden"
+              style={{ background: "var(--border)" }}
+            >
               <motion.div
                 initial={{ width: 0 }} animate={{ width: pct + "%" }}
                 transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
