@@ -94,6 +94,10 @@ async function analyzeUrl(url) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ url }),
     })
+    const contentType = res.headers.get("content-type") || ""
+    if (!contentType.includes("application/json")) {
+      throw new Error("This site blocks automated access. Try selecting the article text and using the Selected Text tab.")
+    }
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || "Analysis failed")
     currentAnalysisId = data.analysis_id
@@ -124,6 +128,10 @@ async function analyzeText(text) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
     })
+    const contentType = res.headers.get("content-type") || ""
+    if (!contentType.includes("application/json")) {
+      throw new Error("Server returned an unexpected response. Please try again.")
+    }
     const data = await res.json()
     if (!res.ok) throw new Error(data.error || "Analysis failed")
     currentAnalysisId = data.analysis_id
