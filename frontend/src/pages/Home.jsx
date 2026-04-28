@@ -410,6 +410,7 @@ export default function Home() {
   const [totalAnalyses, setTotalAnalyses] = useState(null)
   const navigate   = useNavigate()
   const stream     = useStreamingAnalysis()
+  const loading    = stream.active   // must be defined before effects that use it
   const analyzerRef = useRef(null)
   const MAX_CHARS  = 8000
 
@@ -492,8 +493,6 @@ export default function Home() {
   useEffect(() => {
     if (stream.error) setError(stream.error)
   }, [stream.error])
-
-  const loading = stream.active
 
   const canSubmit = !loading && !!input.trim()
 
