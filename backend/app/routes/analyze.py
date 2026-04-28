@@ -9,6 +9,10 @@ from ..services.gemini import explain_verdict, chat_about_article, gemini_availa
 
 analyze_bp = Blueprint("analyze", __name__)
 
+# In-memory cache for AI explanations — avoid burning Gemini quota on
+# repeat visits to the same Results page.
+_EXPLANATION_CACHE: dict[int, str] = {}
+
 
 def get_optional_user_id():
     """Returns user ID if JWT present, else None (guest mode)."""
@@ -179,6 +183,9 @@ def ai_explain(analysis_id):
     if not gemini_available():
         return jsonify({"error": "AI explanations are not configured."}), 503
 
+    if analysis_id in _EXPLANATION_CACHE:
+        return jsonify({"explanation": _EXPLANATION_CACHE[analysis_id], "cached": True}), 200
+
     a = Analysis.query.get_or_404(analysis_id)
     top = sorted(
         (a.sentence_results or []),
@@ -197,6 +204,11 @@ def ai_explain(analysis_id):
             article_text=a.article_text,
             top_sentences=top,
         )
+        _EXPLANATION_CACHE[analysis_id] = text
+        # cap cache size — keep most recent 200
+        if len(_EXPLANATION_CACHE) > 200:
+            for k in list(_EXPLANATION_CACHE.keys())[:50]:
+                _EXPLANATION_CACHE.pop(k, None)
         return jsonify({"explanation": text}), 200
     except Exception as e:
         current_app.logger.warning("Gemini explain failed: %s", e)

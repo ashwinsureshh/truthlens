@@ -51,10 +51,12 @@ def _call_gemini(prompt: str, *, temperature: float = 0.3, max_tokens: int = 400
     except requests.RequestException as e:
         raise RuntimeError(f"Gemini network error: {e}") from e
 
+    if r.status_code == 429:
+        raise RuntimeError("Free-tier quota reached — try again in about a minute.")
     if r.status_code != 200:
-        body = r.text[:400]
+        body = r.text[:300]
         log.warning("Gemini API %s: %s", r.status_code, body)
-        raise RuntimeError(f"Gemini API error {r.status_code}: {body}")
+        raise RuntimeError(f"Gemini API error {r.status_code}")
 
     data = r.json()
     try:
@@ -82,7 +84,7 @@ def explain_verdict(*, overall_score: float, scores: dict,
         for s in (top_sentences or [])[:3]
     ) or "- (no sentence-level signals available)"
 
-    article_excerpt = (article_text or "")[:1500]
+    article_excerpt = (article_text or "")[:600]
 
     prompt = f"""You are a media-literacy assistant. A misinformation detector
 analyzed an article and produced these scores (0-100, higher = more concerning):
@@ -126,7 +128,7 @@ an article that TruthLens scored as {round(overall_score)}/100 risk
  factual={round(scores.get('factual',0))}).
 
 Article:
-\"\"\"{(article_text or '')[:3500]}\"\"\"
+\"\"\"{(article_text or '')[:1800]}\"\"\"
 
 Conversation so far:
 {convo or '(none)'}
