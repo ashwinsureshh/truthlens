@@ -13,10 +13,7 @@ import requests
 
 log = logging.getLogger(__name__)
 
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.0-flash")
-GEMINI_API_URL = (
-    f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent"
-)
+GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-1.5-flash")
 
 
 def _api_key() -> Optional[str]:
@@ -33,6 +30,9 @@ def _call_gemini(prompt: str, *, temperature: float = 0.3, max_tokens: int = 400
     if not key:
         raise RuntimeError("Gemini API key not configured")
 
+    model = os.environ.get("GEMINI_MODEL", GEMINI_MODEL)
+    api_url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+
     payload = {
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
@@ -43,17 +43,18 @@ def _call_gemini(prompt: str, *, temperature: float = 0.3, max_tokens: int = 400
     }
     try:
         r = requests.post(
-            GEMINI_API_URL,
+            api_url,
             params={"key": key},
             json=payload,
-            timeout=20,
+            timeout=25,
         )
     except requests.RequestException as e:
         raise RuntimeError(f"Gemini network error: {e}") from e
 
     if r.status_code != 200:
-        log.warning("Gemini API %s: %s", r.status_code, r.text[:300])
-        raise RuntimeError(f"Gemini API error {r.status_code}")
+        body = r.text[:400]
+        log.warning("Gemini API %s: %s", r.status_code, body)
+        raise RuntimeError(f"Gemini API error {r.status_code}: {body}")
 
     data = r.json()
     try:

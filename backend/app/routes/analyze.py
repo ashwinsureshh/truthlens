@@ -200,7 +200,7 @@ def ai_explain(analysis_id):
         return jsonify({"explanation": text}), 200
     except Exception as e:
         current_app.logger.warning("Gemini explain failed: %s", e)
-        return jsonify({"error": "AI explanation temporarily unavailable."}), 502
+        return jsonify({"error": f"AI explanation failed: {e}"}), 502
 
 
 @analyze_bp.route("/analyze/<int:analysis_id>/chat", methods=["POST"])
@@ -235,7 +235,7 @@ def ai_chat(analysis_id):
         return jsonify({"reply": reply}), 200
     except Exception as e:
         current_app.logger.warning("Gemini chat failed: %s", e)
-        return jsonify({"error": "AI chat temporarily unavailable."}), 502
+        return jsonify({"error": f"AI chat failed: {e}"}), 502
 
 
 @analyze_bp.route("/stats", methods=["GET"])

@@ -98,7 +98,7 @@ export default function AIExplanation({ analysisId }) {
           </div>
         ) : error ? (
           <p className="text-sm" style={{ color: "var(--text-3)" }}>
-            AI explanation unavailable — add <code style={{ color: "#6366f1" }}>GEMINI_API_KEY</code> to Railway to enable.
+            {error}
           </p>
         ) : (
           <motion.p
