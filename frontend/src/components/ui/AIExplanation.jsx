@@ -58,8 +58,6 @@ export default function AIExplanation({ analysisId }) {
     }
   }
 
-  if (error) return null   // fail silently — don't break Results page
-
   return (
     <div
       className="rounded-2xl overflow-hidden"
@@ -98,6 +96,10 @@ export default function AIExplanation({ analysisId }) {
             <span className="dot-bounce w-1.5 h-1.5 rounded-full" style={{ background: "#6366f1" }} />
             <span className="text-xs" style={{ color: "var(--text-3)" }}>Generating explanation…</span>
           </div>
+        ) : error ? (
+          <p className="text-sm" style={{ color: "var(--text-3)" }}>
+            AI explanation unavailable — add <code style={{ color: "#6366f1" }}>GEMINI_API_KEY</code> to Railway to enable.
+          </p>
         ) : (
           <motion.p
             initial={{ opacity: 0, y: 4 }}
