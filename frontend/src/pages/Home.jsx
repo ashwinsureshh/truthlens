@@ -7,6 +7,8 @@ import {
   AnimatePresence,
 } from "framer-motion"
 import { analyzeText, analyzeUrl, getStats } from "../services/api"
+import { useStreamingAnalysis } from "../hooks/useStreamingAnalysis"
+import StreamingOverlay from "../components/ui/StreamingOverlay"
 
 /* ─────────────────────────────────────────────
    21ST.DEV — ElegantShape (shape-landing-hero)
@@ -403,11 +405,11 @@ const FEATURES = [
 export default function Home() {
   const [mode, setMode]               = useState("text")
   const [input, setInput]             = useState("")
-  const [loading, setLoading]         = useState(false)
   const [error, setError]             = useState("")
   const [loadingStep, setLoadingStep] = useState(0)
   const [totalAnalyses, setTotalAnalyses] = useState(null)
   const navigate   = useNavigate()
+  const stream     = useStreamingAnalysis()
   const analyzerRef = useRef(null)
   const MAX_CHARS  = 8000
 
@@ -461,32 +463,37 @@ export default function Home() {
       setError("Please paste at least a sentence or two for meaningful analysis.")
       return
     }
-    setLoading(true)
-    try {
-      const res = mode === "text" ? await analyzeText(input) : await analyzeUrl(input)
-      const token = localStorage.getItem("token")
-      if (!token) {
-        const gh = JSON.parse(localStorage.getItem("guest_history") || "[]")
-        gh.unshift({
-          id: res.data.analysis_id, overall_score: res.data.overall_score,
-          input_type: mode, source_url: mode === "url" ? input : null,
-          text_preview: mode === "text" ? input.trim().slice(0, 80) : null,
-          created_at: new Date().toISOString(),
-        })
-        localStorage.setItem("guest_history", JSON.stringify(gh.slice(0, 20)))
-      }
-      navigate(`/results/${res.data.analysis_id}`)
-    } catch (err) {
-      const status = err.response?.status
-      const msg    = err.response?.data?.error || ""
-      if (status === 429)                setError("Too many requests — wait a moment and try again.")
-      else if (status === 503 || status === 500) setError("AI model is warming up — try again in a few seconds.")
-      else if (msg.includes("too short")) setError("Text too short — paste a full article for accurate analysis.")
-      else                                setError(msg || "Something went wrong. Please try again.")
-    } finally {
-      setLoading(false)
-    }
+    // Kick off streaming analysis — overlay handles the rest
+    stream.start({ mode, input })
   }
+
+  // Navigate to results when streaming pipeline finishes saving
+  useEffect(() => {
+    if (!stream.analysisId) return
+    const token = localStorage.getItem("token")
+    if (!token && stream.final) {
+      const gh = JSON.parse(localStorage.getItem("guest_history") || "[]")
+      gh.unshift({
+        id: stream.analysisId,
+        overall_score: stream.final.overall_score,
+        input_type: mode,
+        source_url: mode === "url" ? input : null,
+        text_preview: mode === "text" ? input.trim().slice(0, 80) : null,
+        created_at: new Date().toISOString(),
+      })
+      localStorage.setItem("guest_history", JSON.stringify(gh.slice(0, 20)))
+    }
+    // brief pause so users see the "complete" state
+    const t = setTimeout(() => navigate(`/results/${stream.analysisId}`), 650)
+    return () => clearTimeout(t)
+  }, [stream.analysisId])
+
+  // Surface streaming errors in the inline error banner
+  useEffect(() => {
+    if (stream.error) setError(stream.error)
+  }, [stream.error])
+
+  const loading = stream.active
 
   const canSubmit = !loading && !!input.trim()
 
@@ -1087,6 +1094,16 @@ export default function Home() {
         </ScrollReveal>
       </section>
 
+      <StreamingOverlay
+        open={stream.active || !!stream.final}
+        meta={stream.meta}
+        dimensions={stream.dimensions}
+        sentences={stream.sentences}
+        progress={stream.progress}
+        final={stream.final}
+        error={stream.error}
+        onCancel={() => { stream.cancel(); stream.reset() }}
+      />
     </div>
   )
 }

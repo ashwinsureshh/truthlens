@@ -6,6 +6,7 @@ import RadarChart from "../components/charts/RadarChart"
 import CredibilityGauge from "../components/charts/CredibilityGauge"
 import AnnotatedArticle from "../components/ui/AnnotatedArticle"
 import TrustWaveform from "../components/charts/TrustWaveform"
+import AIExplanation from "../components/ui/AIExplanation"
 
 const TABS = ["Overview", "Waveform", "Benchmark"]
 
@@ -355,6 +356,9 @@ export default function Results() {
             </AnimatePresence>
           </div>
         </div>
+
+        {/* AI Explanation + Chat */}
+        <AIExplanation analysisId={id} />
 
         {/* Disclaimer */}
         <div

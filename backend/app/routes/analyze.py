@@ -1,9 +1,11 @@
-from flask import Blueprint, request, jsonify
+import json
+from flask import Blueprint, request, jsonify, Response, stream_with_context, current_app
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from .. import db, limiter
 from ..models.analysis import Analysis
 from ..services.scraper import scrape_url
-from ..services.analyzer import analyze_text
+from ..services.analyzer import analyze_text, analyze_text_stream
+from ..services.gemini import explain_verdict, chat_about_article, gemini_available
 
 analyze_bp = Blueprint("analyze", __name__)
 
@@ -82,6 +84,158 @@ def analyze_url_route():
     db.session.commit()
 
     return jsonify({"analysis_id": analysis.id, **result}), 200
+
+
+def _sse_event(data: dict) -> str:
+    """Format a dict as an SSE event."""
+    return f"data: {json.dumps(data)}\n\n"
+
+
+def _stream_and_save(text: str, url: str | None, input_type: str, user_id: int | None, app):
+    """Generator that streams events and saves to DB on completion."""
+    final_result = None
+    try:
+        for event in analyze_text_stream(text, url=url):
+            if event.get("type") == "complete":
+                final_result = event
+            yield _sse_event(event)
+
+        # Save to DB after streaming completes
+        if final_result and not final_result.get("cached"):
+            with app.app_context():
+                analysis = Analysis(
+                    user_id=user_id,
+                    input_type=input_type,
+                    source_url=url,
+                    article_text=text,
+                    overall_score=final_result["overall_score"],
+                    sensationalism_score=final_result["scores"]["sensationalism"],
+                    bias_score=final_result["scores"]["bias"],
+                    emotion_score=final_result["scores"]["emotion"],
+                    factual_score=final_result["scores"]["factual"],
+                    sentence_results=final_result["sentence_results"],
+                )
+                db.session.add(analysis)
+                db.session.commit()
+                yield _sse_event({"type": "saved", "analysis_id": analysis.id})
+    except Exception as e:
+        yield _sse_event({"type": "error", "message": str(e)})
+
+
+@analyze_bp.route("/analyze/text/stream", methods=["POST"])
+@limiter.limit("5/minute;20/hour")
+def analyze_text_stream_route():
+    data = request.get_json()
+    text = data.get("text", "").strip()
+
+    if not text or len(text) < 50:
+        return jsonify({"error": "Please provide at least 50 characters of text"}), 400
+    if len(text) > 8000:
+        return jsonify({"error": "Text is too long. Please keep it under 8,000 characters."}), 400
+
+    user_id = get_optional_user_id()
+    app = current_app._get_current_object()
+    return Response(
+        stream_with_context(_stream_and_save(text, None, "text", user_id, app)),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@analyze_bp.route("/analyze/url/stream", methods=["POST"])
+@limiter.limit("5/minute;20/hour")
+def analyze_url_stream_route():
+    data = request.get_json()
+    url = data.get("url", "").strip()
+
+    if not url:
+        return jsonify({"error": "URL is required"}), 400
+
+    text, error = scrape_url(url)
+    if error:
+        return jsonify({"error": error}), 422
+
+    user_id = get_optional_user_id()
+    app = current_app._get_current_object()
+    return Response(
+        stream_with_context(_stream_and_save(text, url, "url", user_id, app)),
+        mimetype="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+            "Connection": "keep-alive",
+        },
+    )
+
+
+@analyze_bp.route("/analyze/<int:analysis_id>/explain", methods=["GET"])
+@limiter.limit("30/hour")
+def ai_explain(analysis_id):
+    """AI-generated plain-English explanation of the verdict."""
+    if not gemini_available():
+        return jsonify({"error": "AI explanations are not configured."}), 503
+
+    a = Analysis.query.get_or_404(analysis_id)
+    top = sorted(
+        (a.sentence_results or []),
+        key=lambda s: s.get("score", 0),
+        reverse=True,
+    )[:3]
+    try:
+        text = explain_verdict(
+            overall_score=a.overall_score,
+            scores={
+                "sensationalism": a.sensationalism_score,
+                "bias": a.bias_score,
+                "emotion": a.emotion_score,
+                "factual": a.factual_score,
+            },
+            article_text=a.article_text,
+            top_sentences=top,
+        )
+        return jsonify({"explanation": text}), 200
+    except Exception as e:
+        current_app.logger.warning("Gemini explain failed: %s", e)
+        return jsonify({"error": "AI explanation temporarily unavailable."}), 502
+
+
+@analyze_bp.route("/analyze/<int:analysis_id>/chat", methods=["POST"])
+@limiter.limit("30/hour")
+def ai_chat(analysis_id):
+    """Conversational Q&A grounded in the analyzed article."""
+    if not gemini_available():
+        return jsonify({"error": "AI chat is not configured."}), 503
+
+    data = request.get_json() or {}
+    msg = (data.get("message") or "").strip()
+    history = data.get("history") or []
+    if not msg:
+        return jsonify({"error": "message is required"}), 400
+    if len(msg) > 1000:
+        return jsonify({"error": "Question is too long (max 1000 chars)."}), 400
+
+    a = Analysis.query.get_or_404(analysis_id)
+    try:
+        reply = chat_about_article(
+            article_text=a.article_text,
+            scores={
+                "sensationalism": a.sensationalism_score,
+                "bias": a.bias_score,
+                "emotion": a.emotion_score,
+                "factual": a.factual_score,
+            },
+            overall_score=a.overall_score,
+            history=history,
+            user_message=msg,
+        )
+        return jsonify({"reply": reply}), 200
+    except Exception as e:
+        current_app.logger.warning("Gemini chat failed: %s", e)
+        return jsonify({"error": "AI chat temporarily unavailable."}), 502
 
 
 @analyze_bp.route("/stats", methods=["GET"])

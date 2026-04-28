@@ -356,3 +356,153 @@ def _score_to_label(score: float) -> str:
     elif score < 62:
         return "uncertain"
     return "suspicious"
+
+
+# ── STREAMING ANALYSIS ────────────────────────────────────────────────────────
+
+def analyze_text_stream(text: str, url: str | None = None):
+    """
+    Streaming version of analyze_text — yields events as analysis progresses.
+    Each yielded event is a dict; the route serialises it as Server-Sent Events.
+
+    Event types:
+      - meta:       { sentence_count, model }
+      - dimensions: { scores }
+      - sentence:   { index, sentence, score, label }
+      - complete:   { overall_score, scores, sentence_results, sentence_count, confidence_level, model }
+      - error:      { message }
+    """
+    # ── URL cache hit — emit complete immediately ─────────────────────────────
+    if url:
+        cached = _url_cache.get(url)
+        if cached:
+            ts, result = cached
+            if time.time() - ts < URL_CACHE_TTL:
+                logger.info(f"URL cache hit (stream): {url}")
+                # Stream cached sentences one by one for the same UX
+                yield {"type": "meta",
+                       "sentence_count": result["sentence_count"],
+                       "model": result.get("model", "cached")}
+                yield {"type": "dimensions", "scores": result["scores"]}
+                for i, sr in enumerate(result["sentence_results"]):
+                    yield {"type": "sentence",
+                           "index": i,
+                           "sentence": sr["sentence"],
+                           "score": sr["score"],
+                           "label": sr["label"]}
+                yield {"type": "complete", **result, "cached": True}
+                return
+            else:
+                del _url_cache[url]
+
+    # ── Split sentences ────────────────────────────────────────────────────────
+    sentences = _split_sentences(text)
+    if not sentences:
+        yield {"type": "error", "message": "No analysable sentences found."}
+        return
+
+    use_finetuned = _is_finetuned_available()
+    model_used = "roberta-finetuned" if use_finetuned else "minilm-nli"
+
+    # ── Meta event ────────────────────────────────────────────────────────────
+    yield {"type": "meta",
+           "sentence_count": len(sentences),
+           "model": model_used}
+
+    # ── Dimension scores: ONE MiniLM call ─────────────────────────────────────
+    article_snippet = " ".join(sentences[:5])
+    nli = _nli_scores(article_snippet)
+    shared_dim_scores = nli["dim_scores"]
+    yield {"type": "dimensions", "scores": shared_dim_scores}
+
+    # ── Sentence scoring (stream as completed) ────────────────────────────────
+    sentence_results = [None] * len(sentences)
+
+    if use_finetuned:
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            future_to_idx = {
+                executor.submit(_finetuned_score, s): i
+                for i, s in enumerate(sentences)
+            }
+            for future in as_completed(future_to_idx):
+                idx = future_to_idx[future]
+                try:
+                    score = future.result()
+                except Exception as e:
+                    logger.warning(f"Sentence {idx} scoring failed: {e}")
+                    score = 50.0
+                label = _score_to_label(score)
+                sentence_results[idx] = {
+                    "sentence": sentences[idx],
+                    "score": score,
+                    "label": label,
+                    "explanation": "",
+                }
+                yield {"type": "sentence",
+                       "index": idx,
+                       "sentence": sentences[idx],
+                       "score": score,
+                       "label": label}
+    else:
+        # Sequential MiniLM fallback
+        for i, s in enumerate(sentences):
+            try:
+                nli_s = _nli_scores(s)
+                score = nli_s["overall"]
+            except Exception as e:
+                logger.warning(f"Sentence {i} NLI scoring failed: {e}")
+                score = 50.0
+            label = _score_to_label(score)
+            sentence_results[i] = {
+                "sentence": s,
+                "score": score,
+                "label": label,
+                "explanation": "",
+            }
+            yield {"type": "sentence",
+                   "index": i,
+                   "sentence": s,
+                   "score": score,
+                   "label": label}
+
+    # ── LIME (top-3 only, post-stream so the UI doesn't wait) ─────────────────
+    if LIME_ENABLED and use_finetuned:
+        top3_idx = sorted(range(len(sentence_results)),
+                          key=lambda i: sentence_results[i]["score"],
+                          reverse=True)[:3]
+        for i in top3_idx:
+            sentence_results[i]["explanation"] = _lime_explain_finetuned(sentences[i])
+
+    for r in sentence_results:
+        if not r["explanation"]:
+            r["explanation"] = "No strong word-level signals detected."
+
+    # ── Aggregate ─────────────────────────────────────────────────────────────
+    n = len(sentence_results)
+    raw_scores = [r["score"] for r in sentence_results]
+    mean_score = sum(raw_scores) / n
+    top_n = min(3, n)
+    top_mean = sum(sorted(raw_scores, reverse=True)[:top_n]) / top_n
+    nli_score = nli["overall"]
+    overall = round(min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score)), 1)
+
+    if n >= 8:
+        confidence_level = "high"
+    elif n >= 4:
+        confidence_level = "medium"
+    else:
+        confidence_level = "low"
+
+    result = {
+        "overall_score":    overall,
+        "scores":           shared_dim_scores,
+        "sentence_results": sentence_results,
+        "sentence_count":   n,
+        "confidence_level": confidence_level,
+        "model":            model_used,
+    }
+
+    if url:
+        _url_cache[url] = (time.time(), result)
+
+    yield {"type": "complete", **result}

@@ -21,5 +21,8 @@ export const login = (email, password) => api.post("/auth/login", { email, passw
 export const register = (email, password) => api.post("/auth/register", { email, password })
 export const getStats = () => api.get("/stats")
 export const getTrending = () => api.get("/trending")
+export const getAIExplanation = (id) => api.get(`/analyze/${id}/explain`)
+export const aiChat = (id, message, history = []) =>
+  api.post(`/analyze/${id}/chat`, { message, history })
 
 export default api
