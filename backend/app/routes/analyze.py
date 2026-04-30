@@ -5,7 +5,7 @@ from .. import db, limiter
 from ..models.analysis import Analysis
 from ..services.scraper import scrape_url
 from ..services.analyzer import analyze_text, analyze_text_stream
-from ..services.gemini import explain_verdict, chat_about_article, gemini_available
+from ..services.llm import explain_verdict, chat_about_article, llm_available
 
 analyze_bp = Blueprint("analyze", __name__)
 
@@ -180,7 +180,7 @@ def analyze_url_stream_route():
 @limiter.limit("30/hour")
 def ai_explain(analysis_id):
     """AI-generated plain-English explanation of the verdict."""
-    if not gemini_available():
+    if not llm_available():
         return jsonify({"error": "AI explanations are not configured."}), 503
 
     if analysis_id in _EXPLANATION_CACHE:
@@ -219,7 +219,7 @@ def ai_explain(analysis_id):
 @limiter.limit("30/hour")
 def ai_chat(analysis_id):
     """Conversational Q&A grounded in the analyzed article."""
-    if not gemini_available():
+    if not llm_available():
         return jsonify({"error": "AI chat is not configured."}), 503
 
     data = request.get_json() or {}
