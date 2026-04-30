@@ -20,6 +20,7 @@ import { useCallback, useRef, useState } from "react"
 export function useStreamingAnalysis() {
   const [active, setActive]       = useState(false)
   const [meta, setMeta]           = useState(null)        // {total, cached}
+  const [source, setSource]       = useState(null)        // domain credibility info
   const [dimensions, setDimensions] = useState(null)      // {sensationalism,bias,emotion,factual}
   const [sentences, setSentences] = useState([])          // accumulating sentence events
   const [progress, setProgress]   = useState(0)           // count scored
@@ -29,7 +30,7 @@ export function useStreamingAnalysis() {
   const abortRef = useRef(null)
 
   const reset = useCallback(() => {
-    setActive(false); setMeta(null); setDimensions(null)
+    setActive(false); setMeta(null); setSource(null); setDimensions(null)
     setSentences([]); setProgress(0); setFinal(null)
     setAnalysisId(null); setError(null)
   }, [])
@@ -111,6 +112,9 @@ export function useStreamingAnalysis() {
         case "meta":
           setMeta({ total: evt.total_sentences, cached: !!evt.cached })
           break
+        case "source":
+          setSource(evt.source)
+          break
         case "dimensions":
           setDimensions(evt.scores)
           break
@@ -139,7 +143,7 @@ export function useStreamingAnalysis() {
   }, [reset])
 
   return {
-    active, meta, dimensions, sentences, progress,
+    active, meta, source, dimensions, sentences, progress,
     final, analysisId, error,
     start, cancel, reset,
   }

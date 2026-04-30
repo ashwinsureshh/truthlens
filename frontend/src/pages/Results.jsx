@@ -7,6 +7,8 @@ import CredibilityGauge from "../components/charts/CredibilityGauge"
 import AnnotatedArticle from "../components/ui/AnnotatedArticle"
 import TrustWaveform from "../components/charts/TrustWaveform"
 import AIExplanation from "../components/ui/AIExplanation"
+import SourceBadge from "../components/ui/SourceBadge"
+import CredibleRewrite from "../components/ui/CredibleRewrite"
 
 const TABS = ["Overview", "Waveform", "Benchmark"]
 
@@ -56,7 +58,7 @@ export default function Results() {
     </div>
   )
 
-  const { overall_score, scores, sentence_results, sentence_count, confidence_level } = data
+  const { overall_score, scores, sentence_results, sentence_count, confidence_level, source, article_text } = data
   const score = overall_score
   const label = score < 45 ? "Credible" : score < 62 ? "Uncertain" : "Suspicious"
   const badgeClass = score < 45 ? "badge-credible" : score < 62 ? "badge-uncertain" : "badge-suspicious"
@@ -221,6 +223,13 @@ export default function Results() {
               </p>
             </div>
           </motion.div>
+
+          {/* Source credibility badge (URL inputs only, known domains) */}
+          {source && source.known && (
+            <div className="mt-4">
+              <SourceBadge source={source} />
+            </div>
+          )}
         </div>
 
         {/* Score + Radar grid */}
@@ -359,6 +368,9 @@ export default function Results() {
 
         {/* AI Explanation + Chat */}
         <AIExplanation analysisId={id} />
+
+        {/* Credible Rewrite */}
+        <CredibleRewrite analysisId={id} originalText={article_text} />
 
         {/* Disclaimer */}
         <div

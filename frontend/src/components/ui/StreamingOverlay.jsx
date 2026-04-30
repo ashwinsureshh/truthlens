@@ -37,7 +37,7 @@ function scoreText(s) {
 }
 
 export default function StreamingOverlay({
-  open, meta, dimensions, sentences, progress, final, error, onCancel,
+  open, meta, source, dimensions, sentences, progress, final, error, onCancel,
 }) {
   const total    = meta?.total ?? 0
   const cached   = !!meta?.cached
@@ -155,6 +155,46 @@ export default function StreamingOverlay({
                   Cancel
                 </button>
               </div>
+
+              {/* source credibility row (URL inputs, known domains) */}
+              {source?.known && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.35 }}
+                  className="mt-3 flex items-center gap-2 flex-wrap text-[11px]"
+                >
+                  <span style={{ color: "rgba(255,255,255,0.45)" }}>Source:</span>
+                  <span className="font-semibold" style={{ color: "rgba(255,255,255,0.92)" }}>
+                    {source.name || source.domain}
+                  </span>
+                  {source.trust_display && (
+                    <span
+                      className="px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1"
+                      style={{
+                        background: `${source.trust_display.color}26`,
+                        color: source.trust_display.color,
+                        border: `1px solid ${source.trust_display.color}55`,
+                      }}
+                    >
+                      <span className="w-1 h-1 rounded-full" style={{ background: source.trust_display.color }} />
+                      {source.trust_display.label}
+                    </span>
+                  )}
+                  {source.bias_display && (
+                    <span
+                      className="px-2 py-0.5 rounded-full font-semibold"
+                      style={{
+                        background: `${source.bias_display.color}26`,
+                        color: source.bias_display.color,
+                        border: `1px solid ${source.bias_display.color}55`,
+                      }}
+                    >
+                      {source.bias_display.label}
+                    </span>
+                  )}
+                </motion.div>
+              )}
 
               {/* progress bar */}
               <div className="mt-4 h-1.5 w-full rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>

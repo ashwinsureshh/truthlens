@@ -28,6 +28,7 @@ class Analysis(db.Model):
             "id": self.id,
             "input_type": self.input_type,
             "source_url": self.source_url,
+            "article_text": self.article_text,
             "overall_score": self.overall_score,
             "scores": {
                 "sensationalism": self.sensationalism_score,

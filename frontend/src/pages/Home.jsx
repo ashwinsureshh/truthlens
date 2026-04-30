@@ -1096,6 +1096,7 @@ export default function Home() {
       <StreamingOverlay
         open={stream.active || !!stream.final}
         meta={stream.meta}
+        source={stream.source}
         dimensions={stream.dimensions}
         sentences={stream.sentences}
         progress={stream.progress}

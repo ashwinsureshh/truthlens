@@ -24,5 +24,6 @@ export const getTrending = () => api.get("/trending")
 export const getAIExplanation = (id) => api.get(`/analyze/${id}/explain`)
 export const aiChat = (id, message, history = []) =>
   api.post(`/analyze/${id}/chat`, { message, history })
+export const aiRewrite = (id) => api.get(`/analyze/${id}/rewrite`)
 
 export default api

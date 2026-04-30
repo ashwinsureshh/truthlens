@@ -1,8 +1,18 @@
 from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from ..models.analysis import Analysis
+from ..services.source_credibility import lookup_source, enrich
 
 history_bp = Blueprint("history", __name__)
+
+
+def _attach_source(payload: dict, source_url: str | None) -> dict:
+    """Attach source-credibility metadata when the URL is known."""
+    if source_url:
+        src = enrich(lookup_source(source_url))
+        if src:
+            payload["source"] = src
+    return payload
 
 
 @history_bp.route("/analyze/<int:analysis_id>", methods=["GET"])
@@ -11,7 +21,8 @@ def get_analysis_public(analysis_id):
     analysis = Analysis.query.get(analysis_id)
     if not analysis:
         return jsonify({"error": "Analysis not found"}), 404
-    return jsonify(analysis.to_dict()), 200
+    payload = _attach_source(analysis.to_dict(), analysis.source_url)
+    return jsonify(payload), 200
 
 
 @history_bp.route("/history", methods=["GET"])
@@ -36,4 +47,4 @@ def get_analysis(analysis_id):
     if not analysis:
         return jsonify({"error": "Analysis not found"}), 404
 
-    return jsonify(analysis.to_dict()), 200
+    return jsonify(_attach_source(analysis.to_dict(), analysis.source_url)), 200

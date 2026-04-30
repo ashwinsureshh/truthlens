@@ -5,13 +5,14 @@ from .. import db, limiter
 from ..models.analysis import Analysis
 from ..services.scraper import scrape_url
 from ..services.analyzer import analyze_text, analyze_text_stream
-from ..services.llm import explain_verdict, chat_about_article, llm_available
+from ..services.llm import explain_verdict, chat_about_article, rewrite_article, llm_available
+from ..services.source_credibility import lookup_source, enrich
 
 analyze_bp = Blueprint("analyze", __name__)
 
-# In-memory cache for AI explanations — avoid burning Gemini quota on
-# repeat visits to the same Results page.
+# In-memory caches — avoid burning LLM quota on repeat visits.
 _EXPLANATION_CACHE: dict[int, str] = {}
+_REWRITE_CACHE:     dict[int, str] = {}
 
 
 def get_optional_user_id():
@@ -99,6 +100,12 @@ def _stream_and_save(text: str, url: str | None, input_type: str, user_id: int |
     """Generator that streams events and saves to DB on completion."""
     final_result = None
     try:
+        # Send source-credibility info up-front for URL inputs
+        if url:
+            src = enrich(lookup_source(url))
+            if src:
+                yield _sse_event({"type": "source", "source": src})
+
         for event in analyze_text_stream(text, url=url):
             if event.get("type") == "complete":
                 final_result = event
@@ -248,6 +255,38 @@ def ai_chat(analysis_id):
     except Exception as e:
         current_app.logger.warning("Gemini chat failed: %s", e)
         return jsonify({"error": f"AI chat failed: {e}"}), 502
+
+
+@analyze_bp.route("/analyze/<int:analysis_id>/rewrite", methods=["GET"])
+@limiter.limit("20/hour")
+def ai_rewrite(analysis_id):
+    """AI-generated credible rewrite of the article."""
+    if not llm_available():
+        return jsonify({"error": "AI rewrites are not configured."}), 503
+
+    if analysis_id in _REWRITE_CACHE:
+        return jsonify({"rewrite": _REWRITE_CACHE[analysis_id], "cached": True}), 200
+
+    a = Analysis.query.get_or_404(analysis_id)
+    try:
+        text = rewrite_article(
+            article_text=a.article_text,
+            scores={
+                "sensationalism": a.sensationalism_score,
+                "bias": a.bias_score,
+                "emotion": a.emotion_score,
+                "factual": a.factual_score,
+            },
+            overall_score=a.overall_score,
+        )
+        _REWRITE_CACHE[analysis_id] = text
+        if len(_REWRITE_CACHE) > 100:
+            for k in list(_REWRITE_CACHE.keys())[:30]:
+                _REWRITE_CACHE.pop(k, None)
+        return jsonify({"rewrite": text}), 200
+    except Exception as e:
+        current_app.logger.warning("AI rewrite failed: %s", e)
+        return jsonify({"error": f"AI rewrite failed: {e}"}), 502
 
 
 @analyze_bp.route("/stats", methods=["GET"])

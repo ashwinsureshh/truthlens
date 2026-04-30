@@ -169,3 +169,27 @@ User: {user_message}
 Reply in 1-3 short paragraphs. Stay grounded in the article. If the user
 asks something the article doesn't answer, say so. No markdown."""
     return _call_llm(prompt, temperature=0.5, max_tokens=500)
+
+
+def rewrite_article(*, article_text: str, scores: dict, overall_score: float) -> str:
+    """
+    Generate a credible, neutral version of the article — strips bias,
+    sensationalism, and emotional manipulation while keeping the facts.
+    """
+    prompt = f"""Below is an article that a misinformation detector flagged as
+{round(overall_score)}/100 risk (sensationalism={round(scores.get('sensationalism',0))},
+bias={round(scores.get('bias',0))}, emotion={round(scores.get('emotion',0))},
+factual risk={round(scores.get('factual',0))}).
+
+Rewrite the article in a neutral, factual, journalistic style that would
+score low on all four risk dimensions. Keep the verifiable facts. Strip
+out sensational language, loaded adjectives, emotional appeals, and
+unsupported claims. If a claim cannot be verified, hedge it ("according
+to X" or "reportedly"). Keep it roughly the same length as the original.
+
+Output ONLY the rewritten article body. No headings, no commentary,
+no markdown, no preamble like "Here is the rewrite". Just clean prose.
+
+Original article:
+\"\"\"{(article_text or '')[:2500]}\"\"\""""
+    return _call_llm(prompt, temperature=0.3, max_tokens=900)
