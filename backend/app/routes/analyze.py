@@ -111,8 +111,10 @@ def _stream_and_save(text: str, url: str | None, input_type: str, user_id: int |
                 final_result = event
             yield _sse_event(event)
 
-        # Save to DB after streaming completes
-        if final_result and not final_result.get("cached"):
+        # Save to DB after streaming completes — ALWAYS, even on cache hits.
+        # The URL cache only avoids re-running the model; every user still gets
+        # their own history entry tied to their account / guest session.
+        if final_result:
             with app.app_context():
                 analysis = Analysis(
                     user_id=user_id,
