@@ -121,7 +121,12 @@ export function useStreamingAnalysis() {
         case "sentence":
           setSentences((prev) => {
             const next = [...prev]
-            next[evt.index] = { text: evt.text, score: evt.score, dimensions: evt.dimensions }
+            // backend yields the field as `sentence` (not `text`)
+            next[evt.index] = {
+              text: evt.sentence ?? evt.text ?? "",
+              score: evt.score,
+              label: evt.label,
+            }
             return next
           })
           setProgress((p) => p + 1)
