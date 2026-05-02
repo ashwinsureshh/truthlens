@@ -364,8 +364,10 @@ const EXAMPLES = [
 ]
 
 const EXAMPLE_URLS = [
-  { label: "Wikipedia", accent: "#10b981", url: "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope" },
-  { label: "Reuters", accent: "#10b981", url: "https://en.wikipedia.org/wiki/Climate_change" },
+  // Curated for the demo. All Wikipedia (guaranteed scrape reliability)
+  // but varied topics so each click shows distinct content scoring.
+  { label: "Science",    accent: "#10b981", url: "https://en.wikipedia.org/wiki/James_Webb_Space_Telescope" },
+  { label: "Climate",    accent: "#10b981", url: "https://en.wikipedia.org/wiki/Climate_change" },
   { label: "Conspiracy", accent: "#ef4444", url: "https://en.wikipedia.org/wiki/Moon_landing_conspiracy_theories" },
 ]
 
