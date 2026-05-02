@@ -23,7 +23,7 @@ import numpy as np
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from lime.lime_text import LimeTextExplainer
-from .ensemble import calibrate_score
+from .ensemble import calibrate_score, start_aux_score_async
 
 # Disable LIME on CPU-only cloud deployments (too slow without fine-tuned model + GPU)
 LIME_ENABLED = os.environ.get("ENABLE_LIME", "true").lower() == "true"
@@ -260,6 +260,9 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
 
     use_finetuned = _is_finetuned_available()
 
+    # ── Fire aux model in background NOW so it overlaps with sentence scoring ─
+    aux_future = start_aux_score_async(text)
+
     # ── Dimension scores: ONE MiniLM call on article snippet ───────────────────
     article_snippet = " ".join(sentences[:5])
     nli = _nli_scores(article_snippet)
@@ -329,7 +332,8 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
     primary_overall = min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score))
 
     # ── Ensemble + source-credibility calibration ─────────────────────────────
-    calib = calibrate_score(primary_overall, text, url=url)
+    # aux_future was fired at the start; awaiting it here is essentially free.
+    calib = calibrate_score(primary_overall, text, url=url, aux_future=aux_future)
     overall = calib["final_score"]
 
     # Confidence level based on how many sentences were analyzed
@@ -409,6 +413,9 @@ def analyze_text_stream(text: str, url: str | None = None):
     if not sentences:
         yield {"type": "error", "message": "No analysable sentences found."}
         return
+
+    # ── Fire aux model in background NOW so it overlaps with sentence scoring ──
+    aux_future = start_aux_score_async(text)
 
     use_finetuned = _is_finetuned_available()
     model_used = "roberta-finetuned" if use_finetuned else "minilm-nli"
@@ -496,7 +503,8 @@ def analyze_text_stream(text: str, url: str | None = None):
     primary_overall = min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score))
 
     # ── Ensemble + source-credibility calibration ─────────────────────────────
-    calib = calibrate_score(primary_overall, text, url=url)
+    # aux_future was fired at the start; awaiting it here is essentially free.
+    calib = calibrate_score(primary_overall, text, url=url, aux_future=aux_future)
     overall = calib["final_score"]
 
     if n >= 8:

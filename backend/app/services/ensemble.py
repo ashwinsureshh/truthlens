@@ -15,11 +15,16 @@ we degrade gracefully back to the single-model score.
 from __future__ import annotations
 
 import logging
+from concurrent.futures import ThreadPoolExecutor, Future
 from typing import Optional
 
 import numpy as np
 
 from .source_credibility import lookup_source
+
+# Single shared executor for fire-and-forget aux scoring during streaming.
+# 2 workers is enough — only one aux call per analysis.
+_aux_executor = ThreadPoolExecutor(max_workers=2, thread_name_prefix="aux-llm")
 
 log = logging.getLogger(__name__)
 
@@ -29,7 +34,7 @@ log = logging.getLogger(__name__)
 AUX_MODEL_NAME = "hamzab/roberta-fake-news-classification"
 _aux_pipe = None
 _aux_disabled = False
-_MAX_CHARS = 1500   # truncate long articles for fast inference
+_MAX_CHARS = 800   # truncate long articles for fast inference
 
 
 def _get_aux_pipe():
@@ -97,6 +102,26 @@ def is_aux_available() -> bool:
     return _get_aux_pipe() is not None
 
 
+def start_aux_score_async(text: str) -> Future:
+    """
+    Kick off aux-model inference on a background thread immediately.
+    Caller awaits the future at the end of streaming so the aux runs
+    in parallel with sentence scoring. Adds ~zero latency end-to-end.
+    """
+    return _aux_executor.submit(auxiliary_article_score, text)
+
+
+def collect_aux_score(future: Optional[Future], timeout: float = 6.0) -> Optional[float]:
+    """Block on the future with a timeout. Returns None on failure / timeout."""
+    if future is None:
+        return None
+    try:
+        return future.result(timeout=timeout)
+    except Exception as e:
+        log.warning("Aux future failed/timed-out: %s", e)
+        return None
+
+
 # ─────────────────────────────────────────────────────────────────────
 # Source credibility weighting
 # ─────────────────────────────────────────────────────────────────────
@@ -135,22 +160,20 @@ def calibrate_score(
     *,
     primary_weight: float = 0.6,
     aux_weight: float = 0.4,
+    aux_future: Optional[Future] = None,
 ) -> dict:
     """
     Combine the primary analyzer score with the auxiliary ensemble model
     and source credibility, producing the final article score.
 
-    Returns:
-      {
-        "final_score":    float,    # the calibrated score (0-100)
-        "primary_score":  float,    # the original RoBERTa+NLI ensemble
-        "aux_score":      float|None,
-        "source_modifier": float,
-        "ensemble_used":  bool,
-        "models_used":    list[str],
-      }
+    If `aux_future` is provided, await it (with timeout) instead of
+    running the aux model synchronously — this lets the caller fire
+    the aux call early and overlap it with other work.
     """
-    aux = auxiliary_article_score(article_text)
+    if aux_future is not None:
+        aux = collect_aux_score(aux_future)
+    else:
+        aux = auxiliary_article_score(article_text)
     mod, _ = source_modifier(url)
 
     models = ["roberta-truthlens", "minilm-nli"]
