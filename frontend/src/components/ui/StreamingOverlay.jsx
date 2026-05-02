@@ -228,6 +228,45 @@ export default function StreamingOverlay({
                 />
               </div>
 
+              {/* Ensemble calibration badge — appears once analysis completes */}
+              {final?.calibration?.ensemble_used && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-3 flex items-center gap-2 flex-wrap text-[11px]"
+                >
+                  <span
+                    className="px-2 py-0.5 rounded-full font-semibold inline-flex items-center gap-1.5"
+                    style={{
+                      background: "rgba(99,102,241,0.12)",
+                      color: "#6366f1",
+                      border: "1px solid rgba(99,102,241,0.4)",
+                    }}
+                  >
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <path d="M12 2l2.4 6.4L21 11l-6.6 2.6L12 20l-2.4-6.4L3 11l6.6-2.6L12 2z"/>
+                    </svg>
+                    Ensemble · {final.calibration.models_used.length} models
+                  </span>
+                  {final.calibration.source_modifier !== 0 && (
+                    <span
+                      className="px-2 py-0.5 rounded-full font-medium"
+                      style={{
+                        background: final.calibration.source_modifier > 0
+                          ? "rgba(239,68,68,0.10)" : "rgba(16,185,129,0.10)",
+                        color: final.calibration.source_modifier > 0 ? "#ef4444" : "#10b981",
+                        border: `1px solid ${final.calibration.source_modifier > 0 ? "#ef444455" : "#10b98155"}`,
+                      }}
+                    >
+                      Source {final.calibration.source_modifier > 0 ? "+" : ""}{final.calibration.source_modifier}
+                    </span>
+                  )}
+                  <span style={{ color: "var(--text-3)" }}>
+                    primary {final.calibration.primary_score} · aux {final.calibration.aux_score ?? "—"} → <b style={{ color: "var(--text)" }}>final {final.calibration.final_score}</b>
+                  </span>
+                </motion.div>
+              )}
+
               {/* Dimension chips */}
               <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
                 {DIMS.map((d) => {

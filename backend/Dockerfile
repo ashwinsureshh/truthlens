@@ -21,6 +21,8 @@ print('Downloading MiniLM...'); \
 pipeline('zero-shot-classification', model='cross-encoder/nli-MiniLM2-L6-H768'); \
 print('Downloading fine-tuned RoBERTa...'); \
 pipeline('text-classification', model='venooma/roberta-truthlens'); \
+print('Downloading auxiliary fake-news classifier...'); \
+pipeline('text-classification', model='hamzab/roberta-fake-news-classification'); \
 print('All models downloaded.')"
 
 # Expose port (Render injects $PORT at runtime)

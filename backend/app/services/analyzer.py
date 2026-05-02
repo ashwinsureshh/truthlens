@@ -23,6 +23,7 @@ import numpy as np
 from typing import Any
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from lime.lime_text import LimeTextExplainer
+from .ensemble import calibrate_score
 
 # Disable LIME on CPU-only cloud deployments (too slow without fine-tuned model + GPU)
 LIME_ENABLED = os.environ.get("ENABLE_LIME", "true").lower() == "true"
@@ -325,7 +326,11 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
     top_mean   = sum(sorted(raw_scores, reverse=True)[:top_n]) / top_n
     nli_score  = nli["overall"]
 
-    overall = round(min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score)), 1)
+    primary_overall = min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score))
+
+    # ── Ensemble + source-credibility calibration ─────────────────────────────
+    calib = calibrate_score(primary_overall, text, url=url)
+    overall = calib["final_score"]
 
     # Confidence level based on how many sentences were analyzed
     if n >= 8:
@@ -334,6 +339,9 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
         confidence_level = "medium"
     else:
         confidence_level = "low"
+    if calib["ensemble_used"]:
+        # Ensemble agreement → bump confidence one notch
+        confidence_level = {"low": "medium", "medium": "high", "high": "high"}[confidence_level]
 
     result = {
         "overall_score":    overall,
@@ -342,6 +350,7 @@ def analyze_text(text: str, url: str | None = None) -> dict[str, Any]:
         "sentence_count":   n,
         "confidence_level": confidence_level,
         "model":            model_used,
+        "calibration":      calib,
     }
 
     if url:
@@ -484,7 +493,11 @@ def analyze_text_stream(text: str, url: str | None = None):
     top_n = min(3, n)
     top_mean = sum(sorted(raw_scores, reverse=True)[:top_n]) / top_n
     nli_score = nli["overall"]
-    overall = round(min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score)), 1)
+    primary_overall = min(100, max(0, 0.50 * mean_score + 0.30 * top_mean + 0.20 * nli_score))
+
+    # ── Ensemble + source-credibility calibration ─────────────────────────────
+    calib = calibrate_score(primary_overall, text, url=url)
+    overall = calib["final_score"]
 
     if n >= 8:
         confidence_level = "high"
@@ -492,6 +505,8 @@ def analyze_text_stream(text: str, url: str | None = None):
         confidence_level = "medium"
     else:
         confidence_level = "low"
+    if calib["ensemble_used"]:
+        confidence_level = {"low": "medium", "medium": "high", "high": "high"}[confidence_level]
 
     result = {
         "overall_score":    overall,
@@ -500,6 +515,7 @@ def analyze_text_stream(text: str, url: str | None = None):
         "sentence_count":   n,
         "confidence_level": confidence_level,
         "model":            model_used,
+        "calibration":      calib,
     }
 
     if url:

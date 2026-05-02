@@ -134,6 +134,8 @@ export function useStreamingAnalysis() {
         case "complete":
           setFinal(evt)
           if (evt.scores) setDimensions(evt.scores)
+          // calibration metadata (ensemble + source modifier)
+          // surfaced via final.calibration; no separate state needed
           break
         case "saved":
           setAnalysisId(evt.analysis_id)
