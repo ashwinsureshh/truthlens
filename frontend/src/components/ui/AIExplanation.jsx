@@ -84,7 +84,7 @@ export default function AIExplanation({ analysisId }) {
               AI Explanation
             </h3>
             <p className="text-[11px]" style={{ color: "var(--text-3)" }}>
-              Powered by Gemini · plain-English summary of the verdict
+              Powered by Llama 3.3 · plain-English summary of the verdict
             </p>
           </div>
         </div>
