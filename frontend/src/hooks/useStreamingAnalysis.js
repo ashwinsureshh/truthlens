@@ -21,6 +21,8 @@ export function useStreamingAnalysis() {
   const [active, setActive]       = useState(false)
   const [meta, setMeta]           = useState(null)        // {total, cached}
   const [source, setSource]       = useState(null)        // domain credibility info
+  const [linkedSources, setLinkedSources] = useState([])  // hyperlinks found in article
+  const [linkedSummary, setLinkedSummary] = useState(null)
   const [dimensions, setDimensions] = useState(null)      // {sensationalism,bias,emotion,factual}
   const [sentences, setSentences] = useState([])          // accumulating sentence events
   const [progress, setProgress]   = useState(0)           // count scored
@@ -31,6 +33,7 @@ export function useStreamingAnalysis() {
 
   const reset = useCallback(() => {
     setActive(false); setMeta(null); setSource(null); setDimensions(null)
+    setLinkedSources([]); setLinkedSummary(null)
     setSentences([]); setProgress(0); setFinal(null)
     setAnalysisId(null); setError(null)
   }, [])
@@ -115,6 +118,10 @@ export function useStreamingAnalysis() {
         case "source":
           setSource(evt.source)
           break
+        case "links":
+          setLinkedSources(evt.linked_sources || [])
+          setLinkedSummary(evt.summary || null)
+          break
         case "dimensions":
           setDimensions(evt.scores)
           break
@@ -150,7 +157,8 @@ export function useStreamingAnalysis() {
   }, [reset])
 
   return {
-    active, meta, source, dimensions, sentences, progress,
+    active, meta, source, linkedSources, linkedSummary,
+    dimensions, sentences, progress,
     final, analysisId, error,
     start, cancel, reset,
   }

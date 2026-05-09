@@ -9,6 +9,7 @@ import TrustWaveform from "../components/charts/TrustWaveform"
 import AIExplanation from "../components/ui/AIExplanation"
 import SourceBadge from "../components/ui/SourceBadge"
 import CredibleRewrite from "../components/ui/CredibleRewrite"
+import LinkedSourcesCard from "../components/ui/LinkedSourcesCard"
 
 const TABS = ["Overview", "Waveform", "Benchmark"]
 
@@ -58,7 +59,7 @@ export default function Results() {
     </div>
   )
 
-  const { overall_score, scores, sentence_results, sentence_count, confidence_level, source, article_text } = data
+  const { overall_score, scores, sentence_results, sentence_count, confidence_level, source, article_text, linked_sources, linked_summary } = data
   const score = overall_score
   const label = score < 45 ? "Credible" : score < 62 ? "Uncertain" : "Suspicious"
   const badgeClass = score < 45 ? "badge-credible" : score < 62 ? "badge-uncertain" : "badge-suspicious"
@@ -368,6 +369,9 @@ export default function Results() {
 
         {/* AI Explanation + Chat */}
         <AIExplanation analysisId={id} />
+
+        {/* Cited Hyperlinks (only renders if any URLs were found in the article) */}
+        <LinkedSourcesCard linkedSources={linked_sources} summary={linked_summary} />
 
         {/* Credible Rewrite */}
         <CredibleRewrite analysisId={id} originalText={article_text} />

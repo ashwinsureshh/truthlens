@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, verify_jwt_in_request
 from ..models.analysis import Analysis
 from ..services.source_credibility import lookup_source, enrich
+from ..services.link_scanner import scan_links, summary as _link_summary
 
 history_bp = Blueprint("history", __name__)
 
@@ -15,6 +16,22 @@ def _attach_source(payload: dict, source_url: str | None) -> dict:
     return payload
 
 
+def _attach_links(payload: dict, article_text: str | None) -> dict:
+    """Re-scan links from the article text on every read.
+
+    Cheap (just regex + dict lookup) and avoids needing a DB migration
+    to persist linked_sources. Stays in sync if the source-credibility
+    DB is updated."""
+    text = (article_text or "").strip()
+    if not text:
+        return payload
+    links = scan_links(text)
+    if links:
+        payload["linked_sources"] = links
+        payload["linked_summary"] = _link_summary(links)
+    return payload
+
+
 @history_bp.route("/analyze/<int:analysis_id>", methods=["GET"])
 def get_analysis_public(analysis_id):
     """Public endpoint — returns any analysis by ID (guest + logged-in users)."""
@@ -22,6 +39,7 @@ def get_analysis_public(analysis_id):
     if not analysis:
         return jsonify({"error": "Analysis not found"}), 404
     payload = _attach_source(analysis.to_dict(), analysis.source_url)
+    payload = _attach_links(payload, analysis.article_text)
     return jsonify(payload), 200
 
 
@@ -47,4 +65,6 @@ def get_analysis(analysis_id):
     if not analysis:
         return jsonify({"error": "Analysis not found"}), 404
 
-    return jsonify(_attach_source(analysis.to_dict(), analysis.source_url)), 200
+    payload = _attach_source(analysis.to_dict(), analysis.source_url)
+    payload = _attach_links(payload, analysis.article_text)
+    return jsonify(payload), 200

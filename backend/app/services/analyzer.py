@@ -425,6 +425,14 @@ def analyze_text_stream(text: str, url: str | None = None):
            "sentence_count": len(sentences),
            "model": model_used}
 
+    # ── Hyperlink scan — emit early so the UI can show citations ASAP ─────────
+    from .link_scanner import scan_links, summary as _link_summary
+    linked_sources = scan_links(text)
+    if linked_sources:
+        yield {"type": "links",
+               "linked_sources": linked_sources,
+               "summary": _link_summary(linked_sources)}
+
     # ── Dimension scores: ONE MiniLM call ─────────────────────────────────────
     article_snippet = " ".join(sentences[:5])
     nli = _nli_scores(article_snippet)

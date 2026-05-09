@@ -21,6 +21,7 @@ from typing import Optional
 import numpy as np
 
 from .source_credibility import lookup_source
+from .link_scanner import scan_links, aggregate_modifier as _link_modifier
 
 # Single shared executor for fire-and-forget aux scoring during streaming.
 # 2 workers is enough — only one aux call per analysis.
@@ -176,6 +177,11 @@ def calibrate_score(
         aux = auxiliary_article_score(article_text)
     mod, _ = source_modifier(url)
 
+    # ── Hyperlink scan: extract URLs from the article body and score
+    # each domain. Damped modifier folds into the final score.
+    linked = scan_links(article_text)
+    link_mod = _link_modifier(linked)
+
     models = ["roberta-truthlens", "minilm-nli"]
     if aux is not None:
         ensemble = primary_weight * primary_score + aux_weight * aux
@@ -183,13 +189,15 @@ def calibrate_score(
     else:
         ensemble = primary_score
 
-    final = max(0.0, min(100.0, ensemble + mod))
+    final = max(0.0, min(100.0, ensemble + mod + link_mod))
 
     return {
         "final_score":     round(final, 1),
         "primary_score":   round(primary_score, 1),
         "aux_score":       None if aux is None else round(aux, 1),
         "source_modifier": round(mod, 1),
+        "link_modifier":   round(link_mod, 1),
+        "linked_sources":  linked,
         "ensemble_used":   aux is not None,
         "models_used":     models,
     }
