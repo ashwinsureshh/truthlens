@@ -50,9 +50,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 })
 
 // ── Get API base ──────────────────────────────────────────────────────────────
+// Default to the Railway backend directly because the truthlensai.me
+// reverse proxy strips POST methods on /api/* routes. The user can
+// override this in the extension's options page.
+const DEFAULT_API_BASE = "https://truthlens-production-febc.up.railway.app";
+
 async function getApiBase() {
   const { apiUrl } = await chrome.storage.local.get("apiUrl")
-  return (apiUrl || "https://truthlensai.me").replace(/\/$/, "") + "/api"
+  return (apiUrl || DEFAULT_API_BASE).replace(/\/$/, "") + "/api"
 }
 
 // ── Refresh selected text ─────────────────────────────────────────────────────
