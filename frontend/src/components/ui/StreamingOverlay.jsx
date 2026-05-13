@@ -118,20 +118,16 @@ export default function StreamingOverlay({
             <div className="px-5 sm:px-7 pt-5 pb-4">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="relative shrink-0">
-                    <motion.span
-                      className="block w-2 h-2 rounded-full"
-                      style={{ background: verdict.color }}
-                      animate={{ scale: [1, 1.6, 1], opacity: [1, 0.55, 1] }}
-                      transition={{ duration: 1.4, repeat: Infinity }}
+                  <span className="relative shrink-0 flex h-3 w-3 items-center justify-center">
+                    <span
+                      className="absolute inline-flex h-full w-full rounded-full animate-ping"
+                      style={{ background: verdict.color, opacity: 0.5 }}
                     />
-                    <motion.span
-                      className="absolute inset-0 w-2 h-2 rounded-full"
+                    <span
+                      className="relative inline-flex h-2 w-2 rounded-full"
                       style={{ background: verdict.color }}
-                      animate={{ scale: [1, 2.6], opacity: [0.6, 0] }}
-                      transition={{ duration: 1.4, repeat: Infinity }}
                     />
-                  </div>
+                  </span>
                   <div className="min-w-0">
                     <div className="text-[15px] font-semibold leading-tight truncate" style={{ color: "var(--text)" }}>
                       {final ? "Analysis complete" : cached ? "Replaying cached result" : "Analyzing article"}

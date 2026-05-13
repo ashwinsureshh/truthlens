@@ -180,6 +180,31 @@ export default function Results() {
                   </>
                 )}
               </div>
+              {/* Model ensemble badges */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                {[
+                  { label: "RoBERTa",              note: "per-sentence",   color: "#6366f1" },
+                  { label: "MiniLM NLI",           note: "4-axis dims",    color: "#8b5cf6" },
+                  { label: "Fake-News Classifier", note: "cross-validate", color: "#06b6d4" },
+                ].map(({ label, note, color }) => (
+                  <span
+                    key={label}
+                    className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full"
+                    style={{
+                      background: `${color}14`,
+                      color,
+                      border: `1px solid ${color}35`,
+                    }}
+                  >
+                    <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    {label}
+                    <span style={{ opacity: 0.55, fontSize: 10 }}>· {note}</span>
+                  </span>
+                ))}
+              </div>
+
               {/* Source domain badge */}
               {data.source_url && (() => {
                 try {

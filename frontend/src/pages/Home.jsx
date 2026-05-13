@@ -343,7 +343,12 @@ function AnimatedCount({ target, duration = 2 }) {
 /* ─────────────────────────────────────────────
    CONSTANTS
 ───────────────────────────────────────────────*/
-const LOADING_STEPS = ["Fetching content", "Parsing sentences", "Analyzing with AI", "Computing scores"]
+const LOADING_STEPS = [
+  "Scraping article content",
+  "RoBERTa: scoring sentences",
+  "MiniLM NLI: dimensional analysis",
+  "Computing ensemble verdict",
+]
 
 const EXAMPLES = [
   {
