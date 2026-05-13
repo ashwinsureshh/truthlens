@@ -258,21 +258,65 @@ def _template_chat(user_message: str, *, scores: dict,
         return _template_explanation(
             overall_score=overall_score, scores=scores,
             top_sentences=[], label=label,
-        ) + (" The full conversational AI is temporarily unavailable; "
-             "please retry in a minute.")
+        ) + (" Note: conversational AI is temporarily unavailable; "
+             "please retry in a minute for a more detailed answer.")
 
-    return ("AI chat is temporarily unavailable — all language-model "
-            "providers have hit their rate limits or are unreachable. "
-            "Please try again in about a minute. The credibility analysis "
-            "above is fully accurate and was produced by our local "
-            "transformer ensemble.")
+    if any(k in msg for k in ("bias", "partisan", "slant", "one-sided")):
+        b = round(scores.get("bias", 0))
+        return (f"The bias dimension scored {b}/100. "
+                + ("This indicates strong partisan framing — the article uses language "
+                   "that favours one political perspective over presenting a balanced view."
+                   if b >= 60
+                   else "Moderate bias signals were detected — some framing language was found "
+                        "but it does not dominate the piece."
+                   if b >= 30
+                   else "Low partisan bias was detected in this article."))
+
+    if any(k in msg for k in ("sensational", "clickbait", "headline", "exaggerat")):
+        s = round(scores.get("sensationalism", 0))
+        return (f"The sensationalism dimension scored {s}/100. "
+                + ("Strong clickbait patterns, emotional headlines, or exaggerated language "
+                   "were detected throughout this article."
+                   if s >= 60
+                   else "Some sensational language was found but it is not the dominant style."
+                   if s >= 30
+                   else "The article's language appears measured and avoids sensationalism."))
+
+    if any(k in msg for k in ("emotion", "manipulat", "fear", "anger", "outrage")):
+        e = round(scores.get("emotion", 0))
+        return (f"The emotional manipulation dimension scored {e}/100. "
+                + ("This article uses high emotional intensity — fear, outrage, or urgency "
+                   "are used to influence the reader's reaction rather than inform."
+                   if e >= 60
+                   else "Some emotional language is present but within a normal range for journalism."
+                   if e >= 30
+                   else "Emotional manipulation signals are low in this article."))
+
+    # Generic fallback — still give a score summary rather than saying "unavailable"
+    return (f"Based on TruthLens's analysis, this article scored {overall}/100 "
+            f"and is classified as {label}. "
+            f"The main risk signals are: sensationalism {round(scores.get('sensationalism', 0))}/100, "
+            f"bias {round(scores.get('bias', 0))}/100, "
+            f"emotion {round(scores.get('emotion', 0))}/100, "
+            f"factual risk {round(scores.get('factual', 0))}/100. "
+            f"For a more detailed answer to your question, please retry in a minute "
+            f"when the AI chat service is back online.")
+
+
+def _strip_link_footer(text: str) -> str:
+    """Remove the 'Cited links:' footer that scraper.py appends to article bodies.
+    The footer is useful for the hyperlink scanner but should never appear in
+    LLM prompts or template rewrites — it would produce a wall of raw URLs."""
+    if "\n\nCited links:" in text:
+        text = text[:text.index("\n\nCited links:")]
+    return text.strip()
 
 
 def _template_rewrite(article_text: str) -> str:
     """Rule-based neutralization when no LLM can rewrite the article."""
     if not article_text:
         return ""
-    text = article_text.strip()
+    text = _strip_link_footer(article_text)
     # Strip leading "BREAKING:", "SHOCKING:", etc.
     text = re.sub(r"^(BREAKING|SHOCKING|EXCLUSIVE|URGENT|ALERT)[\s:!-]+",
                   "", text, flags=re.I)
@@ -347,6 +391,8 @@ that drove the score. Do not moralise. Do not repeat the scores verbatim."""
 def chat_about_article(*, article_text: str, scores: dict,
                        overall_score: float, history: list[dict],
                        user_message: str) -> str:
+    # Strip the hyperlink-scanner footer — it's noise for the LLM
+    clean_text = _strip_link_footer(article_text or "")
     convo = "\n".join(
         f"{'User' if m.get('role') == 'user' else 'Assistant'}: {m.get('content','')}"
         for m in (history or [])[-6:]
@@ -359,7 +405,7 @@ an article that TruthLens scored as {round(overall_score)}/100 risk
  factual={round(scores.get('factual',0))}).
 
 Article:
-\"\"\"{(article_text or '')[:1800]}\"\"\"
+\"\"\"{clean_text[:1800]}\"\"\"
 
 Conversation so far:
 {convo or '(none)'}
@@ -382,6 +428,9 @@ asks something the article doesn't answer, say so. No markdown."""
 
 
 def rewrite_article(*, article_text: str, scores: dict, overall_score: float) -> str:
+    # Strip the hyperlink-scanner footer before sending to any LLM or template
+    clean_text = _strip_link_footer(article_text or "")
+
     prompt = f"""Below is an article that a misinformation detector flagged as
 {round(overall_score)}/100 risk (sensationalism={round(scores.get('sensationalism',0))},
 bias={round(scores.get('bias',0))}, emotion={round(scores.get('emotion',0))},
@@ -397,9 +446,9 @@ Output ONLY the rewritten article body. No headings, no commentary,
 no markdown, no preamble like "Here is the rewrite". Just clean prose.
 
 Original article:
-\"\"\"{(article_text or '')[:2500]}\"\"\""""
+\"\"\"{clean_text[:2500]}\"\"\""""
 
     return _call_llm(
         prompt, temperature=0.3, max_tokens=900,
-        template_fn=lambda: _template_rewrite(article_text),
+        template_fn=lambda: _template_rewrite(clean_text),
     )
