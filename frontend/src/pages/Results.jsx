@@ -10,6 +10,8 @@ import AIExplanation from "../components/ui/AIExplanation"
 import SourceBadge from "../components/ui/SourceBadge"
 import CredibleRewrite from "../components/ui/CredibleRewrite"
 import LinkedSourcesCard from "../components/ui/LinkedSourcesCard"
+import ArticleDNA from "../components/ui/ArticleDNA"
+import MisinfoAutopsy from "../components/ui/MisinfoAutopsy"
 
 const TABS = ["Overview", "Waveform", "Benchmark"]
 
@@ -392,13 +394,39 @@ export default function Results() {
           </div>
         </div>
 
+        {/* Article DNA fingerprint */}
+        {sentence_results?.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
+          >
+            <ArticleDNA sentences={sentence_results} />
+          </motion.div>
+        )}
+
+        {/* Misinformation Autopsy */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1], delay: 0.32 }}
+        >
+          <MisinfoAutopsy
+            score={overall_score}
+            scores={scores}
+            sentenceCount={sentence_count}
+            linkedSources={linked_sources}
+            articleText={article_text}
+          />
+        </motion.div>
+
         {/* AI Explanation + Chat */}
         <AIExplanation analysisId={id} />
 
         {/* Cited Hyperlinks (only renders if any URLs were found in the article) */}
         <LinkedSourcesCard linkedSources={linked_sources} summary={linked_summary} />
 
-        {/* Credible Rewrite */}
+        {/* Credible Rewrite — now with Before/After drag slider */}
         <CredibleRewrite analysisId={id} originalText={article_text} />
 
         {/* Disclaimer */}
